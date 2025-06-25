@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Transition } from "framer-motion";
 import Image from "next/image";
 import { IconBrandLinkedinFilled, IconBrandGithubFilled } from '@tabler/icons-react';
 
@@ -12,7 +12,7 @@ interface LineProps {
   vectorEffect?: string;
   initial?: string;
   animate?: string;
-  transition?: object;
+  transition?: Transition;
   [key: string]: unknown; // Allow other properties
 }
 
@@ -21,7 +21,7 @@ interface MenuButtonProps {
   isOpen?: boolean;
   color?: string;
   strokeWidth?: string | number;
-  transition?: object | undefined;
+  transition?: Transition;
   lineProps?: LineProps;
   width?: string | number;
   height?: string | number;
@@ -223,7 +223,7 @@ export default function StickyHeader() {
           }}
         >
           <Image 
-            src="/logo2.svg" 
+            src="/logo.svg" 
             alt="Logo" 
             width={29} 
             height={29}

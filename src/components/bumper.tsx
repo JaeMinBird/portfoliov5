@@ -2,14 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-type BumperPillProps = {
+type BumperProps = {
   className?: string;
   number: string | number;
   sectionHeader: string;
   id?: string;
 };
 
-export default function BumperPill({ className = '', number, sectionHeader, id }: BumperPillProps) {
+export default function Bumper({ className = '', number, sectionHeader, id }: BumperProps) {
   const bumperRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -48,10 +48,10 @@ export default function BumperPill({ className = '', number, sectionHeader, id }
     <div 
       id={id}
       ref={bumperRef}
-      className={`w-full py-6 relative ${className}`}
+      className={`w-full py-6 px-6 md:px-0 relative ${className}`}
     >
-      {/* Pill-shaped container */}
-      <div className="relative h-12 w-full max-w-4xl mx-auto">
+      {/* Pill-shaped container - consistent responsive width */}
+      <div className="relative h-12 w-full md:w-[80vw] md:mx-auto">
         {/* Outer border (orange pill shape) */}
         <div className="absolute inset-0 rounded-full border-2 border-orange-500 bg-transparent overflow-hidden">
           {/* Inner padding container to create transparent gap */}

@@ -11,14 +11,26 @@ export default function Experience() {
   const [isXs, setIsXs] = useState(false);
   const [isLgOnly, setIsLgOnly] = useState(false);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const previousIsLargeRef = useRef<boolean | null>(null);
 
   useEffect(() => {
     const checkScreenSize = () => {
       const width = window.innerWidth;
-      setIsLarge(width >= 1024); // lg breakpoint
+      const newIsLarge = width >= 1024; // lg breakpoint
+      
+      // Check for transition between mobile and desktop
+      if (previousIsLargeRef.current !== null && previousIsLargeRef.current !== newIsLarge) {
+        // Force reload when transitioning between mobile and desktop layouts
+        window.location.reload();
+        return;
+      }
+      
+      previousIsLargeRef.current = newIsLarge;
+      setIsLarge(newIsLarge);
       setIsXs(width < 480); // xs breakpoint
       setIsLgOnly(width >= 1024 && width < 1280); // lg only (not xl)
     };
+    
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
@@ -146,8 +158,8 @@ export default function Experience() {
   // Mobile component (< lg)
   if (isMobile) {
     return (
-      <div className="min-h-screen bg-white font-sans">
-        <div className="w-full px-6 py-16">
+      <div className="bg-white font-sans" style={{ minHeight: 'calc(100vh - 160px)' }}>
+        <div className="w-full px-6 py-8">
           <div className="relative h-[50vh] overflow-hidden">
             <div className="absolute inset-0 z-0">
               <AnimatePresence>
@@ -323,10 +335,10 @@ export default function Experience() {
     );
   }
 
-  // Desktop component (lg and above)
+  // Desktop component (lg and above) - consistent height
   return (
-    <div className="min-h-screen bg-white font-sans">
-      <div className="w-[77vw] mx-auto py-32">
+    <div className="bg-white font-sans" style={{ height: '600px' }}>
+      <div className="w-[77vw] mx-auto py-16 h-full">
         <div className="flex">
           <div className={`${isLgOnly ? 'w-[70%]' : 'w-[60%]'} relative h-96 flex flex-col overflow-hidden`}>
             <div className="absolute inset-0 z-0">
@@ -428,7 +440,7 @@ export default function Experience() {
             {jobData.map((job, index) => (
               <motion.div
                 key={job.id}
-                className={`text-3xl cursor-pointer relative text-center font-medium ${
+                className={`text-3xl cursor-pointer relative text-center font-medium text-black ${
                   index === 0 ? 'py-8' : index === jobData.length - 1 ? 'py-8 -mt-4' : 'py-8 -mt-4'
                 }`}
                 onMouseEnter={() => handleMouseEnter(job)}

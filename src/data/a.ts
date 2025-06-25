@@ -10,7 +10,7 @@ export interface JobInfo {
 export const jobData: JobInfo[] = [
   {
     id: 1,
-    company: "Google",
+    company: "HTI Lab",
     title: "ML Researcher",
     startDate: "Jan 2023",
     endDate: "Present",
@@ -18,7 +18,7 @@ export const jobData: JobInfo[] = [
   },
   {
     id: 2,
-    company: "Microsoft",
+    company: "JiaYou Tennis",
     title: "Software Engineer",
     startDate: "Aug 2021",
     endDate: "Dec 2022",
@@ -26,7 +26,7 @@ export const jobData: JobInfo[] = [
   },
   {
     id: 3,
-    company: "Meta",
+    company: "Upstate Accounting & Tax",
     title: "Webdev Intern",
     startDate: "Mar 2020",
     endDate: "Jul 2021",
@@ -34,7 +34,7 @@ export const jobData: JobInfo[] = [
   },
   {
     id: 4,
-    company: "Apple",
+    company: "Minburn Solutions",
     title: "Support Technician",
     startDate: "Jun 2018",
     endDate: "Feb 2020",
