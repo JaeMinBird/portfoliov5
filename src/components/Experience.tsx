@@ -255,7 +255,7 @@ export default function Experience() {
             </div>
             
             {/* Minimal list with start and end dates */}
-            <div className="max-w-sm mx-auto space-y-1">
+            <div className="max-w-sm mx-auto">
               {jobData.map((job, index) => (
                 <motion.button
                   key={job.id}
@@ -263,7 +263,7 @@ export default function Experience() {
                   onClick={() => handleJobToggle(job)}
                   whileTap={{ scale: 0.99 }}
                 >
-                  <div className={`py-4 px-3 -my-0.5 transition-all duration-200 rounded-lg ${
+                  <div className={`py-3 px-3 mx-0 my-1 transition-all duration-200 rounded-lg ${
                     hoveredJob?.id === job.id 
                       ? 'bg-black text-white' 
                       : 'text-black hover:bg-gray-50'
@@ -284,7 +284,7 @@ export default function Experience() {
                       </div>
                     </div>
                   </div>
-                  {index !== jobData.length - 1 && hoveredJob?.id !== job.id && (
+                  {index !== jobData.length - 1 && (
                     <div className="absolute bottom-0 left-6 right-6 h-px bg-gray-200"></div>
                   )}
                 </motion.button>
