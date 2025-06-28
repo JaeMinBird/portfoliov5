@@ -6,6 +6,7 @@ import StickyHeader from "@/components/nav";
 import Logo from "@/components/logo";
 import Bumper from "@/components/bumper";
 import Experience from "@/components/experience";
+import Projects from "@/components/projects";
 import Footer from "@/components/footer";
 
 export default function Home() {
@@ -78,6 +79,11 @@ export default function Home() {
         sectionHeader="WORK" 
         id="work"
       />
+
+      {/* Projects Section */}
+      <section id="projects">
+        <Projects />
+      </section>
 
       {/* Footer */}
       <Footer />
