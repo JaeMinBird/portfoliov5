@@ -158,7 +158,7 @@ export default function Experience() {
   // Mobile component (< lg)
   if (isMobile) {
     return (
-      <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)]" style={{ minHeight: 'calc(100vh - 160px)' }}>
+      <div className="bg-white" style={{ minHeight: 'calc(100vh - 160px)' }}>
         <div className="w-full px-6 py-8">
           <div className="relative h-[35vh] overflow-hidden">
             <div className="absolute inset-0 z-0">
@@ -298,7 +298,7 @@ export default function Experience() {
 
   // Desktop component (lg and above) - consistent height
   return (
-    <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)]" style={{ height: '600px' }}>
+    <div className="bg-white" style={{ height: '600px' }}>
       <div className="w-[77vw] mx-auto py-16 h-full">
         <div className="flex">
           <div className={`${isLgOnly ? 'w-[70%]' : 'w-[60%]'} relative h-96 flex flex-col overflow-hidden`}>
