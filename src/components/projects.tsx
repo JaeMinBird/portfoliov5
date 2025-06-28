@@ -7,18 +7,21 @@ import { projectData, ProjectInfo, FilterCategory } from '../data/projects';
 export default function Projects() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>('Featured');
   const [isMobile, setIsMobile] = useState(false);
+  const [screenWidth, setScreenWidth] = useState(0);
 
   const filterCategories: FilterCategory[] = ['All', 'Featured', 'ML/AI', 'Full Stack'];
 
   useEffect(() => {
-    const checkIfMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+    const checkScreenSize = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < 768);
+      setScreenWidth(width);
     };
     
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
     
-    return () => window.removeEventListener('resize', checkIfMobile);
+    return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
   const filteredProjects = projectData.filter(project => {
@@ -39,8 +42,15 @@ export default function Projects() {
     const lines: string[][] = [];
     let currentLine: string[] = [];
     
-    // Use more generous line length limits
-    const maxLineLength = isMobile ? 20 : 40; // Much more generous for desktop
+    // Use more generous line length limits based on screen size
+    let maxLineLength = 20; // mobile default
+    if (screenWidth >= 1024) {
+      maxLineLength = 50; // lg and above - much more generous
+    } else if (screenWidth >= 768) {
+      maxLineLength = 22; // md - more aggressive clipping for 3-column layout
+    } else if (screenWidth >= 640) {
+      maxLineLength = 30; // sm
+    }
     let currentLength = 0;
 
     words.forEach(word => {
@@ -69,16 +79,21 @@ export default function Projects() {
 
 
 
-  const handleFilterChange = (newFilter: FilterCategory) => {
+    const handleFilterChange = (newFilter: FilterCategory) => {
     setActiveFilter(newFilter);
   };
 
+
+
+ 
+
   return (
     <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)] pb-20">
-      <div className="w-[80vw] mx-auto">
+      <div className="w-full px-8 py-8 md:w-[80vw] md:mx-auto md:px-6 md:py-0 lg:px-0">
         {/* Filter Section */}
-        <div className="mb-12">
-          <div className="flex flex-wrap gap-3 items-center md:justify-center">
+        <div className="mb-6">
+          {/* Filter Buttons */}
+          <div className="flex flex-wrap gap-3 items-center justify-center mb-4">
             {filterCategories.map((category) => (
               <div key={category} className="overflow-hidden rounded-xl group">
                 <motion.button
@@ -111,9 +126,11 @@ export default function Projects() {
                 </motion.button>
               </div>
             ))}
-            
-            {/* Platform-dependent instruction - same line as options */}
-            <span className="text-sm font-medium text-gray-500 uppercase tracking-[0.2em] ml-4 flex-shrink-0 py-2.5">
+          </div>
+          
+          {/* Platform-dependent instruction - separate line */}
+          <div className="text-center">
+            <span className="text-sm font-medium text-gray-500 uppercase tracking-[0.2em]">
               {isMobile ? 'Tap for details' : 'Click for details'}
             </span>
           </div>
@@ -123,7 +140,7 @@ export default function Projects() {
         <div className="pt-6">
           <div
             key={activeFilter}
-            className="grid grid-cols-2 md:flex md:flex-wrap md:justify-center gap-8 md:gap-12"
+            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
           >
             {filteredProjects.map((project) => (
               <div
@@ -133,7 +150,8 @@ export default function Projects() {
                   <div className="flex flex-col h-full">
                     {/* Project Image - Slightly rounded */}
                     <motion.div 
-                      className="w-full aspect-square md:w-80 md:h-80 bg-gray-100 rounded-xs mb-2 group-hover:-translate-y-4 transition-transform duration-300"
+                      className="w-full aspect-square bg-gray-100 rounded-xs mb-2 group-hover:-translate-y-4 transition-transform duration-300"
+                      style={{ aspectRatio: '1/1' }}
                     >
                       <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-500 text-sm md:text-lg font-medium rounded-xs">
                         {project.title}
