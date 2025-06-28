@@ -253,25 +253,40 @@ export default function Experience() {
             <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-6 text-center">
               Select Experience
             </div>
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-              {jobData.map((job) => (
+            
+            {/* Minimal list with start and end dates */}
+            <div className="max-w-sm mx-auto space-y-1">
+              {jobData.map((job, index) => (
                 <motion.button
                   key={job.id}
-                  className={`px-4 py-6 rounded-lg border-2 transition-all duration-200 text-center ${
-                    hoveredJob?.id === job.id 
-                      ? 'border-black bg-black text-white' 
-                      : 'border-gray-200 bg-white text-black hover:border-gray-400'
-                  }`}
+                  className="w-full text-left transition-all duration-200 relative"
                   onClick={() => handleJobToggle(job)}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.1 }}
+                  whileTap={{ scale: 0.99 }}
                 >
-                  <div className="text-base font-medium mb-1">
-                    {job.company}
+                  <div className={`py-4 px-3 -my-0.5 transition-all duration-200 rounded-lg ${
+                    hoveredJob?.id === job.id 
+                      ? 'bg-black text-white' 
+                      : 'text-black hover:bg-gray-50'
+                  }`}>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="text-base font-medium mb-1">
+                          {job.company}
+                        </div>
+                        <div className="text-xs opacity-70">
+                          {job.title}
+                        </div>
+                      </div>
+                      <div className="text-xs opacity-50 text-right ml-4">
+                        <div>{job.endDate}</div>
+                        <div>—</div>
+                        <div>{job.startDate}</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-xs opacity-70">
-                    {job.title}
-                  </div>
+                  {index !== jobData.length - 1 && hoveredJob?.id !== job.id && (
+                    <div className="absolute bottom-0 left-6 right-6 h-px bg-gray-200"></div>
+                  )}
                 </motion.button>
               ))}
             </div>
