@@ -241,18 +241,18 @@ export default function StickyHeader() {
         transition={{ duration: 0.5 }}
       >
         <nav className="flex items-center space-x-8">
-          {/* Experience Link with slide effect - exact height of text */}
+          {/* About Link with slide effect - exact height of text */}
           <div className="overflow-hidden leading-none" style={{ height: '1.25rem' }}>
             <motion.a 
-              href="#experience" 
+              href="#about" 
               className={`text-xl font-medium flex flex-col leading-none ${scrolled ? 'text-white' : 'text-[#3B3B3B]'}`}
               style={{ fontFamily: 'var(--font-fredoka)' }}
-              onClick={(e) => scrollToSection('experience', e)}
+              onClick={(e) => scrollToSection('about', e)}
               whileHover={{ y: '-1.25rem' }}
               transition={{ duration: 0.2 }}
             >
-              <span className={scrolled ? 'text-white' : 'text-[#F8C46F]'}>EXPERIENCE</span>
-              <span className={scrolled ? 'text-white' : 'text-[#F8C46F]'}>EXPERIENCE</span>
+              <span className={scrolled ? 'text-white' : 'text-[#F8C46F]'}>ABOUT</span>
+              <span className={scrolled ? 'text-white' : 'text-[#F8C46F]'}>ABOUT</span>
             </motion.a>
           </div>
 
@@ -312,21 +312,21 @@ export default function StickyHeader() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <nav className="flex flex-col items-center space-y-8">
+            <nav className="flex flex-col items-center space-y-12">
               <motion.a
-                href="#experience"
-                className="text-4xl font-bold text-[#3B3B3B]"
+                href="#about"
+                className="text-5xl font-bold text-[#F8C46F]"
                 style={{ fontFamily: 'var(--font-fredoka)' }}
-                onClick={(e) => scrollToSection('experience', e)}
+                onClick={(e) => scrollToSection('about', e)}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
               >
-                EXPERIENCE
+                ABOUT
               </motion.a>
               <motion.a
                 href="#projects"
-                className="text-4xl font-bold text-[#3B3B3B]"
+                className="text-5xl font-bold text-[#F8C46F]"
                 style={{ fontFamily: 'var(--font-fredoka)' }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -337,7 +337,7 @@ export default function StickyHeader() {
               </motion.a>
               <motion.a
                 href="/resume"
-                className="text-4xl font-bold text-[#3B3B3B]"
+                className="text-5xl font-bold text-[#F8C46F]"
                 style={{ fontFamily: 'var(--font-fredoka)' }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -365,7 +365,7 @@ export default function StickyHeader() {
               </div>
 
               <div className="mb-4">
-                <a href="mailto:hello@toyfight.co" className="hover:text-[#F8C46F]">hello@toyfight.co</a>
+                <a href="mailto:jaeminbird@gmail.com" className="hover:text-[#F8C46F]">jaeminbird@gmail.com</a>
               </div>
 
               <p className="text-xs">© 2025 All Rights Reserved</p>
