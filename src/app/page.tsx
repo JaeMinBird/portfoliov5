@@ -45,15 +45,12 @@ export default function Home() {
           <div className="text-center">
             <motion.p 
               className="text-xs uppercase tracking-widest text-gray-600 mb-1"
-              whileHover={{ color: "#fb923c" }}
-              transition={{ duration: 0.2 }}
             >
               SCROLL TO
             </motion.p>
             <motion.p 
-              className="text-sm font-medium text-gray-800"
-              whileHover={{ color: "#f97316" }}
-              transition={{ duration: 0.2 }}
+              className="text-sm font-medium"
+              style={{ color: "#F8C46F" }}
             >
               EXPLORE
             </motion.p>
