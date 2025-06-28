@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { projectData, ProjectInfo, FilterCategory } from '../data/projects';
 
 export default function Projects() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>('Featured');
   const [isMobile, setIsMobile] = useState(false);
   const [screenWidth, setScreenWidth] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const filterCategories: FilterCategory[] = ['All', 'Featured', 'ML/AI', 'Full Stack'];
 
@@ -77,19 +78,76 @@ export default function Projects() {
     return lines;
   };
 
-
-
-    const handleFilterChange = (newFilter: FilterCategory) => {
-    setActiveFilter(newFilter);
+  const handleFilterChange = async (newFilter: FilterCategory) => {
+    if (newFilter === activeFilter) return;
+    
+    setIsTransitioning(true);
+    
+    // Start the white overlay animation
+    setTimeout(() => {
+      setActiveFilter(newFilter);
+    }, 100);
+    
+    // End transition state after all animations complete
+    setTimeout(() => {
+      setIsTransitioning(false);
+    }, 600);
   };
 
+  // Animation variants for the white overlay - LEFT TO RIGHT (Fixed TypeScript errors)
+  const overlayVariants: Variants = {
+    hidden: { 
+      x: '-100%',
+      opacity: 0 
+    },
+    visible: { 
+      x: 0,
+      opacity: 1
+    },
+    exit: { 
+      x: '100%',
+      opacity: 0
+    }
+  };
 
+  // Animation variants for project grid container
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        delayChildren: 0.05,
+        staggerChildren: 0.06,
+      }
+    }
+  };
 
- 
+  // Animation variants for individual projects - JERKY BOUNCE EFFECT (Fixed TypeScript errors)
+  const projectVariants: Variants = {
+    hidden: { 
+      opacity: 0,
+      y: 60,
+      scale: 0.7,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1
+    }
+  };
 
   return (
-    <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)] pb-8 md:pb-20">
-              <div className="w-full px-8 pt-4 pb-8 md:w-[80vw] md:mx-auto md:px-6 md:py-0 lg:px-0">
+    <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)] pb-8 md:pb-20 overflow-hidden">
+      <motion.div 
+        className="w-full px-8 pt-4 pb-8 md:w-[80vw] md:mx-auto md:px-6 md:py-0 lg:px-0"
+        layout
+        transition={{ 
+          layout: { 
+            duration: 0.4, 
+            ease: "easeInOut" 
+          }
+        }}
+      >
         {/* Filter Section */}
         <div className="mb-4">
           {/* Filter Buttons */}
@@ -104,6 +162,7 @@ export default function Projects() {
                       : 'bg-white text-black border-black hover:bg-gray-50'
                   }`}
                   style={{ minWidth: 'fit-content' }}
+                  disabled={isTransitioning}
                 >
                   {!isMobile ? (
                     <div className="overflow-hidden leading-tight" style={{ height: '1.2em' }}>
@@ -136,18 +195,72 @@ export default function Projects() {
           </div>
         </div>
 
-        {/* Projects Grid */}
-        <div className="pt-6">
-          <div
-            key={activeFilter}
-            className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8"
-          >
-            {filteredProjects.map((project) => (
-              <div
-                key={project.id}
-                className="group cursor-pointer flex flex-col"
-              >
-                  <div className="flex flex-col h-full">
+        {/* Projects Grid Container with Relative Positioning */}
+        <motion.div 
+          className="pt-6 relative overflow-hidden"
+          layout
+          transition={{ 
+            layout: { 
+              duration: 0.4, 
+              ease: "easeInOut" 
+            }
+          }}
+        >
+          {/* White Overlay Animation */}
+          <AnimatePresence mode="wait">
+            {isTransitioning && (
+              <motion.div
+                key="overlay"
+                className="absolute inset-0 bg-white z-10 pointer-events-none"
+                variants={overlayVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                transition={{
+                  duration: 0.2,
+                  ease: [0.25, 0.1, 0.25, 1.0]
+                }}
+              />
+            )}
+          </AnimatePresence>
+
+          {/* Projects Grid */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeFilter}
+              className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 w-full"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+              layout
+              transition={{ 
+                layout: { 
+                  duration: 0.4, 
+                  ease: "easeInOut" 
+                }
+              }}
+            >
+              {filteredProjects.map((project, index) => (
+                <motion.div
+                  key={project.id}
+                  className="group cursor-pointer flex flex-col w-full"
+                  variants={projectVariants}
+                  layout
+                  transition={{ 
+                    layout: { 
+                      duration: 0.4, 
+                      ease: "easeInOut" 
+                    },
+                    duration: 0.3,
+                    ease: [0.68, -0.55, 0.265, 1.55],
+                    opacity: {
+                      duration: 0.15,
+                      ease: [0.25, 0.1, 0.25, 1.0]
+                    }
+                  }}
+                >
+                  <div className="flex flex-col h-full w-full">
                     {/* Project Image - Slightly rounded */}
                     <motion.div 
                       className="w-full aspect-square bg-gray-100 rounded-xs mb-2 group-hover:-translate-y-4 transition-transform duration-300"
@@ -159,7 +272,7 @@ export default function Projects() {
                     </motion.div>
 
                     {/* Project Title Container - Fixed height for up to 2 lines */}
-                    <div className="h-[3.2em] flex flex-col justify-start self-start">
+                    <div className="h-[3.2em] flex flex-col justify-start self-start w-full">
                       <div className="flex flex-col gap-1">
                         {groupWordsByLines(project.title).map((line, lineIndex) => (
                           <div key={lineIndex} className="flex gap-1">
@@ -196,22 +309,27 @@ export default function Projects() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-        </div>
+            </motion.div>
+          </AnimatePresence>
+        </motion.div>
 
         {/* Empty State */}
-        {filteredProjects.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-16"
-          >
-            <p className="text-gray-500 text-lg">No projects found in this category.</p>
-          </motion.div>
-        )}
-      </div>
+        <AnimatePresence>
+          {filteredProjects.length === 0 && !isTransitioning && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="text-center py-16"
+              layout
+            >
+              <p className="text-gray-500 text-lg">No projects found in this category.</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 } 
