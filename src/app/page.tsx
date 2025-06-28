@@ -76,17 +76,19 @@ export default function Home() {
       {/* Work Section Bumper */}
       <Bumper 
         number="02" 
-        sectionHeader="WORK" 
-        id="work"
+        sectionHeader="PROJECTS" 
+        id="projects"
       />
 
       {/* Projects Section */}
-      <section id="projects">
+      <section>
         <Projects />
       </section>
 
       {/* Footer */}
-      <Footer />
+      <section id="footer">
+        <Footer />
+      </section>
     </div>
   );
 }
