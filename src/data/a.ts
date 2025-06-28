@@ -26,7 +26,7 @@ export const jobData: JobInfo[] = [
   },
   {
     id: 3,
-    company: "Upstate Accounting & Tax",
+    company: "Albany AT",
     title: "Webdev Intern",
     startDate: "Mar 2020",
     endDate: "Jul 2021",
@@ -34,7 +34,7 @@ export const jobData: JobInfo[] = [
   },
   {
     id: 4,
-    company: "Minburn Solutions",
+    company: "Mindburn Solutions",
     title: "Support Technician",
     startDate: "Jun 2018",
     endDate: "Feb 2020",

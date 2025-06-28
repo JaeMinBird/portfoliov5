@@ -158,7 +158,7 @@ export default function Experience() {
   // Mobile component (< lg)
   if (isMobile) {
     return (
-      <div className="bg-white font-sans" style={{ minHeight: 'calc(100vh - 160px)' }}>
+      <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)]" style={{ minHeight: 'calc(100vh - 160px)' }}>
         <div className="w-full px-6 py-8">
           <div className="relative h-[50vh] overflow-hidden">
             <div className="absolute inset-0 z-0">
@@ -337,7 +337,7 @@ export default function Experience() {
 
   // Desktop component (lg and above) - consistent height
   return (
-    <div className="bg-white font-sans" style={{ height: '600px' }}>
+    <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)]" style={{ height: '600px' }}>
       <div className="w-[77vw] mx-auto py-16 h-full">
         <div className="flex">
           <div className={`${isLgOnly ? 'w-[70%]' : 'w-[60%]'} relative h-96 flex flex-col overflow-hidden`}>
@@ -397,16 +397,16 @@ export default function Experience() {
 
             {/* Desktop: EXPER + IENCE */}
             <div className={`text-[12rem] font-bold leading-none relative z-20 h-full flex flex-col font-[700] ${isLgOnly ? 'px-2' : 'px-4'}`}>
-              <div className="relative flex-1 flex items-center">
+              <div className="relative flex-1 flex items-start">
                 <div className="relative w-full">
-                  <div className="flex justify-between w-full text-black uppercase">
+                  <div className="grid grid-cols-5 w-full text-black uppercase">
                     {"exper".split('').map((letter, index) => (
                       <motion.span
                         key={`exper-${index}`}
                         custom={index}
                         variants={desktopLetterVariants}
                         animate={hoveredJob ? "slide" : "initial"}
-                        className="inline-block relative"
+                        className="inline-block relative text-center"
                         style={{ zIndex: 30 - index }}
                       >
                         {letter}
@@ -415,16 +415,16 @@ export default function Experience() {
                   </div>
                 </div>
               </div>
-              <div className="relative flex-1 flex items-center">
+              <div className="relative flex-1 flex items-end">
                 <div className="relative w-full">
-                  <div className="flex justify-between w-full text-black uppercase">
+                  <div className="grid grid-cols-5 w-full text-black uppercase">
                     {"ience".split('').map((letter, index) => (
                       <motion.span
                         key={`ience-${index}`}
                         custom={index + 5}
                         variants={desktopLetterVariants}
                         animate={hoveredJob ? "slide" : "initial"}
-                        className="inline-block relative"
+                        className="inline-block relative text-center"
                         style={{ zIndex: 30 - (index + 5) }}
                       >
                         {letter}
@@ -437,28 +437,48 @@ export default function Experience() {
           </div>
 
           <div className={`${isLgOnly ? 'w-[30%]' : 'w-[40%]'} flex flex-col justify-center items-center`}>
-            {jobData.map((job, index) => (
-              <motion.div
-                key={job.id}
-                className={`text-3xl cursor-pointer relative text-center font-medium text-black ${
-                  index === 0 ? 'py-8' : index === jobData.length - 1 ? 'py-8 -mt-4' : 'py-8 -mt-4'
-                }`}
-                onMouseEnter={() => handleMouseEnter(job)}
-                onMouseLeave={handleMouseLeave}
-                whileHover={{ x: 10 }}
-                transition={{ duration: 0.2 }}
+            {/* Companies section - 90% */}
+            <div className="flex-[0.9] flex flex-col justify-center items-center">
+              {jobData.map((job, index) => (
+                <motion.div
+                  key={job.id}
+                  className={`text-3xl cursor-pointer relative text-center font-medium text-black ${
+                    index === 0 ? 'py-8' : index === jobData.length - 1 ? 'py-8 -mt-4' : 'py-8 -mt-4'
+                  }`}
+                  onMouseEnter={() => handleMouseEnter(job)}
+                  onMouseLeave={handleMouseLeave}
+                  whileHover={{ x: 10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <span className="relative">
+                    {job.company}
+                    <motion.div
+                      className="absolute bottom-0 left-0 h-0.5 bg-current"
+                      initial={{ width: 0 }}
+                      whileHover={{ width: "100%" }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+            
+            {/* Instructional text section - 10% */}
+            <div className="flex-[0.1] flex items-center justify-center">
+              <motion.div 
+                initial={{ 
+                  opacity: isMobile ? 0 : 1,
+                }}
+                animate={{ 
+                  opacity: isMobile ? 0 : 1,
+                }}
+                transition={{ duration: 0.3 }}
               >
-                <span className="relative">
-                  {job.company}
-                  <motion.div
-                    className="absolute bottom-0 left-0 h-0.5 bg-current"
-                    initial={{ width: 0 }}
-                    whileHover={{ width: "100%" }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </span>
+                <div className="text-xs font-medium text-gray-500 uppercase tracking-[0.2em] text-center">
+                  Hover for details
+                </div>
               </motion.div>
-            ))}
+            </div>
           </div>
         </div>
       </div>
