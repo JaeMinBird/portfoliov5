@@ -274,10 +274,10 @@ export default function StickyHeader() {
           {/* Connect Link with slide effect - exact height of text */}
           <div className="overflow-hidden leading-none" style={{ height: '1.25rem' }}>
             <motion.a 
-              href="#connect" 
+              href="#footer" 
               className={`text-xl font-medium flex flex-col leading-none ${scrolled ? 'text-white' : 'text-[#3B3B3B]'}`}
               style={{ fontFamily: 'var(--font-fredoka)' }}
-              onClick={(e) => scrollToSection('connect', e)}
+              onClick={(e) => scrollToSection('footer', e)}
               whileHover={{ y: '-1.25rem' }}
               transition={{ duration: 0.2 }}
             >
@@ -336,37 +336,25 @@ export default function StickyHeader() {
                 PROJECTS
               </motion.a>
               <motion.a
-                href="#connect"
-                className="text-4xl font-bold text-[#3B3B3B]"
-                style={{ fontFamily: 'var(--font-fredoka)' }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                onClick={(e) => scrollToSection('connect', e)}
-              >
-                CONNECT
-              </motion.a>
-              <motion.a
                 href="/resume"
                 className="text-4xl font-bold text-[#3B3B3B]"
                 style={{ fontFamily: 'var(--font-fredoka)' }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
+                transition={{ delay: 0.3 }}
                 onClick={() => setMobileNavOpen(false)}
               >
                 RESUME
               </motion.a>
             </nav>
 
-            {/* Footer section for mobile menu similar to screenshot */}
+            {/* Footer section for mobile menu */}
             <motion.div 
               className="absolute bottom-0 left-0 right-0 flex flex-col items-center pb-8 text-center text-sm text-gray-600"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.4 }}
             >
-              <p className="mb-3">Connect</p>
               <div className="flex space-x-6 mb-4">
                 <a href="https://linkedin.com" className="hover:text-[#F8C46F] transition-colors">
                   <IconBrandLinkedinFilled size={24} />
@@ -380,7 +368,7 @@ export default function StickyHeader() {
                 <a href="mailto:hello@toyfight.co" className="hover:text-[#F8C46F]">hello@toyfight.co</a>
               </div>
 
-              <p className="text-xs">© 2025 ToyFight® All Rights Reserved</p>
+              <p className="text-xs">© 2025 All Rights Reserved</p>
             </motion.div>
           </motion.div>
         )}
