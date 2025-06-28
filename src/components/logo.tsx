@@ -17,41 +17,28 @@ export default function Logo() {
   const mobileTime = useRef(0)
   const isVisible = useRef(true)
 
-  // Memoized mouse handler with distance-based optimization
+  // Simplified mouse handler for canvas-only tracking
   const handleMouseMove = useCallback((event: MouseEvent) => {
     if (isMobile.current || !mountRef.current) return
     
     const rect = mountRef.current.getBoundingClientRect()
     
-    // Calculate distance from logo center
-    const centerX = rect.left + rect.width / 2
-    const centerY = rect.top + rect.height / 2
-    const mouseX = event.clientX
-    const mouseY = event.clientY
+    // Simple normalized coordinates calculation
+    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1
     
-    // Define interaction radius (e.g., 1.5x the logo size)
-    const interactionRadius = Math.max(rect.width, rect.height) * 1.5
-    const distance = Math.sqrt(
-      Math.pow(mouseX - centerX, 2) + Math.pow(mouseY - centerY, 2)
-    )
-    
-    // Only update if mouse is within interaction radius
-    if (distance > interactionRadius) {
-      // Gradually return to neutral position when outside radius
-      targetRotation.current.y *= 0.95
-      targetRotation.current.x *= 0.95
-      return
-    }
-    
-    // Calculate normalized coordinates relative to logo bounds
-    const x = ((mouseX - rect.left) / rect.width) * 2 - 1
-    const y = -((mouseY - rect.top) / rect.height) * 2 + 1
     mousePosition.current = { x, y }
+    targetRotation.current.y = x * 1
+    targetRotation.current.x = -y * 0.4
+  }, [])
+
+  // Handle mouse leave to smoothly return to neutral position
+  const handleMouseLeave = useCallback(() => {
+    if (isMobile.current) return
     
-    // Apply distance-based dampening for smoother interaction
-    const dampening = 1 - (distance / interactionRadius)
-    targetRotation.current.y = x * dampening * 1
-    targetRotation.current.x = -y * dampening * 0.4
+    // Gradually return to neutral position
+    targetRotation.current.y = 0
+    targetRotation.current.x = 0
   }, [])
 
   // Memoized resize handler
@@ -227,22 +214,26 @@ export default function Logo() {
       }
     }
 
-    // Use document listener but with distance checking for optimization
-    if (!isMobile.current) {
-      document.addEventListener('mousemove', handleMouseMove, { passive: true })
+    // Attach mouse events to canvas only (not document) for better performance
+    if (!isMobile.current && mountRef.current) {
+      mountRef.current.addEventListener('mousemove', handleMouseMove, { passive: true })
+      mountRef.current.addEventListener('mouseleave', handleMouseLeave, { passive: true })
     }
     window.addEventListener('resize', handleResize, { passive: true })
     animate(0)
 
     return () => {
       if (frameId.current) cancelAnimationFrame(frameId.current)
-      if (!isMobile.current) {
-        document.removeEventListener('mousemove', handleMouseMove)
+      
+      // Clean up canvas-specific event listeners
+      const currentMountRef = mountRef.current
+      if (!isMobile.current && currentMountRef) {
+        currentMountRef.removeEventListener('mousemove', handleMouseMove)
+        currentMountRef.removeEventListener('mouseleave', handleMouseLeave)
       }
       window.removeEventListener('resize', handleResize)
       
       // Fix: Store the current reference before cleanup
-      const currentMountRef = mountRef.current
       if (currentMountRef && rendererRef.current?.domElement) {
         currentMountRef.removeChild(rendererRef.current.domElement)
       }
@@ -262,7 +253,7 @@ export default function Logo() {
         })
       }
     }
-  }, [handleMouseMove, handleResize])
+  }, [handleMouseMove, handleMouseLeave, handleResize])
 
   return (
     <div 
