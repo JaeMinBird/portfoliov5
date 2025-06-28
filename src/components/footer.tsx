@@ -44,7 +44,7 @@ export default function Footer({ className = '' }: FooterProps) {
               </div>
               <div className="overflow-hidden leading-none mb-2 sm:mb-0" style={{ height: '1.25rem' }}>
                 <motion.a 
-                  href="https://linkedin.com" 
+                  href="https://www.linkedin.com/in/jaeminbirdsall/" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-lg md:text-xl font-medium flex flex-col leading-none"
@@ -57,7 +57,7 @@ export default function Footer({ className = '' }: FooterProps) {
               </div>
               <div className="overflow-hidden leading-none mb-2 sm:mb-0" style={{ height: '1.25rem' }}>
                 <motion.a 
-                  href="https://github.com" 
+                  href="https://github.com/JaeMinBird" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-lg md:text-xl font-medium flex flex-col leading-none"

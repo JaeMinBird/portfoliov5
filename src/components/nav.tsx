@@ -356,10 +356,10 @@ export default function StickyHeader() {
               transition={{ delay: 0.4 }}
             >
               <div className="flex space-x-6 mb-4">
-                <a href="https://linkedin.com" className="hover:text-[#F8C46F] transition-colors">
+                <a href="https://www.linkedin.com/in/jaeminbirdsall/" className="hover:text-[#F8C46F] transition-colors">
                   <IconBrandLinkedinFilled size={24} />
                 </a>
-                <a href="https://github.com" className="hover:text-[#F8C46F] transition-colors">
+                <a href="https://github.com/JaeMinBird" className="hover:text-[#F8C46F] transition-colors">
                   <IconBrandGithubFilled size={24} />
                 </a>
               </div>
