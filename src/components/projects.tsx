@@ -88,7 +88,7 @@ export default function Projects() {
  
 
   return (
-    <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)] pb-20">
+    <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)] pb-8 md:pb-20">
       <div className="w-full px-8 py-8 md:w-[80vw] md:mx-auto md:px-6 md:py-0 lg:px-0">
         {/* Filter Section */}
         <div className="mb-6">
