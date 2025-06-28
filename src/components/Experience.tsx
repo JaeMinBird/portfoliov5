@@ -160,7 +160,7 @@ export default function Experience() {
     return (
       <div className="bg-white font-[family-name:var(--font-atkinson-hyperlegible)]" style={{ minHeight: 'calc(100vh - 160px)' }}>
         <div className="w-full px-6 py-8">
-          <div className="relative h-[50vh] overflow-hidden">
+          <div className="relative h-[35vh] overflow-hidden">
             <div className="absolute inset-0 z-0">
               <AnimatePresence>
                 {hoveredJob && (
@@ -211,95 +211,41 @@ export default function Experience() {
 
             {/* Mobile text layout - responsive based on screen size */}
             <div className="text-[6rem] font-bold leading-tight relative z-20 h-full flex flex-col justify-center font-[700] text-center">
-              {isXs ? (
-                // XS screens: EXP + ERIE + NCE (3 lines)
-                <>
-                  <div className="relative flex justify-center mb-2">
-                    <div className="flex space-x-1">
-                      {"EXP".split('').map((letter, index) => (
-                        <motion.span
-                          key={`exp-${index}`}
-                          custom={index}
-                          variants={mobileLetterVariants}
-                          animate={hoveredJob ? "slide" : "initial"}
-                          className="inline-block relative text-black"
-                          style={{ zIndex: 30 - index }}
-                        >
-                          {letter}
-                        </motion.span>
-                      ))}
-                    </div>
+              {/* All mobile screens: EXPER + IENCE (2 lines) */}
+              <>
+                <div className="relative flex justify-center mb-2">
+                  <div className="flex space-x-1">
+                    {"EXPER".split('').map((letter, index) => (
+                      <motion.span
+                        key={`exper-${index}`}
+                        custom={index}
+                        variants={mobileLetterVariants}
+                        animate={hoveredJob ? "slide" : "initial"}
+                        className="inline-block relative text-black"
+                        style={{ zIndex: 30 - index }}
+                      >
+                        {letter}
+                      </motion.span>
+                    ))}
                   </div>
-                  <div className="relative flex justify-center mb-2">
-                    <div className="flex space-x-1">
-                      {"ERIE".split('').map((letter, index) => (
-                        <motion.span
-                          key={`erie-${index}`}
-                          custom={index + 3}
-                          variants={mobileLetterVariants}
-                          animate={hoveredJob ? "slide" : "initial"}
-                          className="inline-block relative text-black"
-                          style={{ zIndex: 30 - (index + 3) }}
-                        >
-                          {letter}
-                        </motion.span>
-                      ))}
-                    </div>
+                </div>
+                <div className="relative flex justify-center">
+                  <div className="flex space-x-1">
+                    {"IENCE".split('').map((letter, index) => (
+                      <motion.span
+                        key={`ience-${index}`}
+                        custom={index + 5}
+                        variants={mobileLetterVariants}
+                        animate={hoveredJob ? "slide" : "initial"}
+                        className="inline-block relative text-black"
+                        style={{ zIndex: 30 - (index + 5) }}
+                      >
+                        {letter}
+                      </motion.span>
+                    ))}
                   </div>
-                  <div className="relative flex justify-center">
-                    <div className="flex space-x-1">
-                      {"NCE".split('').map((letter, index) => (
-                        <motion.span
-                          key={`nce-${index}`}
-                          custom={index + 7}
-                          variants={mobileLetterVariants}
-                          animate={hoveredJob ? "slide" : "initial"}
-                          className="inline-block relative text-black"
-                          style={{ zIndex: 30 - (index + 7) }}
-                        >
-                          {letter}
-                        </motion.span>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                // SM/MD screens: EXPER + IENCE (2 lines)
-                <>
-                  <div className="relative flex justify-center mb-2">
-                    <div className="flex space-x-1">
-                      {"EXPER".split('').map((letter, index) => (
-                        <motion.span
-                          key={`exper-${index}`}
-                          custom={index}
-                          variants={mobileLetterVariants}
-                          animate={hoveredJob ? "slide" : "initial"}
-                          className="inline-block relative text-black"
-                          style={{ zIndex: 30 - index }}
-                        >
-                          {letter}
-                        </motion.span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="relative flex justify-center">
-                    <div className="flex space-x-1">
-                      {"IENCE".split('').map((letter, index) => (
-                        <motion.span
-                          key={`ience-${index}`}
-                          custom={index + 5}
-                          variants={mobileLetterVariants}
-                          animate={hoveredJob ? "slide" : "initial"}
-                          className="inline-block relative text-black"
-                          style={{ zIndex: 30 - (index + 5) }}
-                        >
-                          {letter}
-                        </motion.span>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              )}
+                </div>
+              </>
             </div>
           </div>
 
