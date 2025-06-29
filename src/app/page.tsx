@@ -8,6 +8,7 @@ import Bumper from "@/components/bumper";
 import Experience from "@/components/experience";
 import Projects from "@/components/projects";
 import Footer from "@/components/footer";
+import Bio from "@/components/bio";
 
 export default function Home() {
   const { scrollY } = useScroll();
@@ -67,6 +68,7 @@ export default function Home() {
 
       {/* Experience Section */}
       <section id="experience">
+        <Bio />
         <Experience />
       </section>
 
