@@ -165,13 +165,13 @@ export default function Bio() {
           </div>
 
           {/* Right side - 60% */}
-          <div className="w-3/5 pl-12">
+          <div className="w-3/5 pl-12 h-full flex items-center">
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               viewport={{ once: true }}
-              className="flex justify-center"
+              className="flex justify-center w-full"
             >
               <p className="text-3xl leading-relaxed text-black max-w-2xl text-center">
                 As a <span style={{ color: '#1E407C' }}>Penn State CS</span> student, I research{' '}
