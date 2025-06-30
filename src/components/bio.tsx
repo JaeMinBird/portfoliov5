@@ -95,7 +95,7 @@ export default function Bio() {
                     style={{ color: '#6ABF6F' }}
                   >
                     JiaYou Tennis
-                  </a>. Beyond tech, I lead AAPI organizations, spearheading fundraising initiatives that have raised over $10,000. When not coding, you'll find me{' '}
+                  </a>. Beyond tech, I've held multiple positions in AAPI organizations, having raised over $10,000 through community engagement work. When not coding, you'll find me{' '}
                   <span 
                     className="relative cursor-pointer"
                     style={{ color: '#F8C46F' }}
@@ -204,7 +204,7 @@ export default function Bio() {
                   style={{ color: '#6ABF6F' }}
                 >
                   JiaYou Tennis
-                </a>. Beyond tech, I lead AAPI organizations, spearheading fundraising initiatives that have raised over $10,000. When not coding, you'll find me{' '}
+                </a>. Beyond tech, I've held multiple positions in AAPI organizations, having raised over $10,000 through community engagement work. When not coding, you'll find me{' '}
                 <span 
                   className="relative cursor-pointer"
                   style={{ color: '#F8C46F' }}
