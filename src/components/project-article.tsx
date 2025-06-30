@@ -36,9 +36,12 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 150;
+      const scrollPosition = window.scrollY;
+      const isMobile = window.innerWidth < 768;
+      const offset = isMobile ? 100 : 150;
+      const overviewThreshold = isMobile ? 300 : 400;
       
-      if (scrollPosition < 400) {
+      if (scrollPosition + offset < overviewThreshold) {
         setActiveSection('overview');
         return;
       }
@@ -46,7 +49,7 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
       for (const section of sections.slice(1)) {
         const element = document.getElementById(section.id);
         if (element) {
-          const elementTop = element.offsetTop;
+          const elementTop = element.offsetTop - offset;
           const elementBottom = elementTop + element.offsetHeight;
           
           if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
@@ -58,7 +61,11 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll); // Re-calculate on resize
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+    };
   }, []);
 
   return (
