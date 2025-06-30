@@ -95,7 +95,7 @@ export default function Bio() {
                     style={{ color: '#6ABF6F' }}
                   >
                     JiaYou Tennis
-                  </a>. Beyond tech, I lead AAPI organizations, spearheading fundraising initiatives that have raised over $10,000 for the community. When not coding, you'll find me{' '}
+                  </a>. Beyond tech, I lead AAPI organizations, spearheading fundraising initiatives that have raised over $10,000. When not coding, you'll find me{' '}
                   <span 
                     className="relative cursor-pointer"
                     style={{ color: '#F8C46F' }}
@@ -138,7 +138,7 @@ export default function Bio() {
       <div className="w-[70vw] mx-auto py-16 h-full">
         <div className="flex items-center h-full gap-0">
           {/* Left side - 40% */}
-          <div className="w-2/5 flex flex-col items-start justify-center text-left">
+          <div className="w-2/5 flex flex-col items-center justify-center text-center">
             <motion.div 
               className="mb-4"
               initial={{ opacity: 0, y: 20 }}
@@ -156,11 +156,21 @@ export default function Bio() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
-              className="w-full flex justify-center"
+              className="relative flex items-center justify-center"
             >
               <h1 className="text-[12rem] xl:text-[14rem] font-bold text-black tracking-tight leading-none">
-                jae<span style={{ color: '#F8C46F' }}>*</span>
+                jae
               </h1>
+              <span 
+                className="text-[12rem] xl:text-[14rem] font-bold tracking-tight leading-none absolute"
+                style={{ 
+                  color: '#F8C46F',
+                  left: '100%',
+                  marginLeft: '0.1em'
+                }}
+              >
+                *
+              </span>
             </motion.div>
           </div>
 
@@ -194,7 +204,7 @@ export default function Bio() {
                   style={{ color: '#6ABF6F' }}
                 >
                   JiaYou Tennis
-                </a>. Beyond tech, I lead AAPI organizations, spearheading fundraising initiatives that have raised over $10,000 for the community. When not coding, you'll find me{' '}
+                </a>. Beyond tech, I lead AAPI organizations, spearheading fundraising initiatives that have raised over $10,000. When not coding, you'll find me{' '}
                 <span 
                   className="relative cursor-pointer"
                   style={{ color: '#F8C46F' }}
