@@ -37,7 +37,7 @@ export const projectData: ProjectInfo[] = [
     conceptSentence: "Intelligent professor review analysis",
     role: "Developer",
     platform: "Web Application & Automated Pipeline",
-    stack: ["Python", "PyTorch", "Transformers", "DistilBERT", "Flask", "BeautifulSoup4", "Pandas", "Scikit-learn", "Plotly", "APScheduler"],
+    stack: ["Python", "PyTorch", "Flask", "BeautifulSoup", "Pandas", "Scikit-learn"],
     problem: "Students at Penn State lacked comprehensive tools to analyze professor reviews beyond simple ratings. Traditional review systems didn't account for the nuanced relationship between difficulty and quality, making it challenging to identify truly excellent professors versus easy graders. Additionally, manual analysis of thousands of reviews was impractical for extracting meaningful departmental insights.",
     solution: "Developed a comprehensive sentiment analysis system featuring dual ML models: a standard rating-based model and an innovative combined model that incorporates difficulty scores and metadata. The system automatically scrapes Rate My Professors data, processes reviews using DistilBERT transformers, and provides real-time insights through an interactive Flask dashboard. Implemented automated daily pipeline runs with performance tracking to continuously improve model accuracy over time.",
     reflection: "This project deepened my understanding of NLP model fine-tuning and the complexities of web scraping at scale. Working with transformer models taught me about the trade-offs between model complexity and inference speed. The automated pipeline development highlighted the importance of robust error handling and monitoring in production ML systems. Building the comparative analysis between models revealed insights about when traditional metrics might not capture the full picture of model performance. Future enhancements would explore multi-university datasets and temporal sentiment tracking across academic terms."
@@ -62,7 +62,7 @@ export const projectData: ProjectInfo[] = [
   },
   {
     id: 3,
-    title: "263 STUDIOS - Modern Fashion E-Commerce",
+    title: "Ecommerce Platform from Scratch",
     description: "Minimalist fashion e-commerce platform built from the ground up, featuring sophisticated responsive design, custom animations, and a complete full-stack architecture with AWS-hosted infrastructure.",
     image: "/placeholder-400x400.jpg",
     categories: ["Full Stack"],
