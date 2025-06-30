@@ -14,7 +14,7 @@ export default function Footer({ className = '' }: FooterProps) {
   return (
     <div className="w-full px-6 md:px-0">
       <footer 
-        className={`flex flex-col justify-between px-8 md:px-12 pt-4 md:pt-6 pb-0 relative overflow-hidden rounded-t-2xl w-full md:w-[80vw] md:mx-auto ${className}`}
+        className={`flex flex-col justify-between px-8 md:px-12 pt-4 md:pt-6 pb-0 relative overflow-hidden rounded-t-2xl w-full md:w-[60vw] md:mx-auto ${className}`}
         style={{ backgroundColor: '#F8C46F' }}
       >
         <div className="relative z-10 flex flex-col w-full h-full">
