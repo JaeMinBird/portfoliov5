@@ -2,13 +2,15 @@
 
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import StickyHeader from "@/components/nav";
-import Logo from "@/components/logo";
-import Bumper from "@/components/bumper";
-import Experience from "@/components/experience";
-import Projects from "@/components/projects";
-import Footer from "@/components/footer";
-import Bio from "@/components/bio";
+import { 
+  StickyHeader, 
+  Logo, 
+  Bumper, 
+  Experience, 
+  Projects, 
+  Footer, 
+  Bio 
+} from "@/components";
 
 export default function Home() {
   const { scrollY } = useScroll();
