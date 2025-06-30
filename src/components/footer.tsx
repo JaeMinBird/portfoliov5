@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
@@ -11,12 +11,30 @@ interface FooterProps {
 
 export default function Footer({ className = '', width = '80vw' }: FooterProps) {
   const currentYear = new Date().getFullYear();
+  const [footerWidth, setFooterWidth] = useState('100%');
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (window.innerWidth >= 768) {
+        setFooterWidth(width);
+      } else {
+        setFooterWidth('100%');
+      }
+    };
+
+    updateWidth();
+    window.addEventListener('resize', updateWidth);
+    return () => window.removeEventListener('resize', updateWidth);
+  }, [width]);
 
   return (
     <div className="w-full px-6 md:px-0">
       <footer 
-        className={`flex flex-col justify-between px-8 md:px-12 pt-4 md:pt-6 pb-0 relative overflow-hidden rounded-t-2xl w-full md:w-[${width}] md:mx-auto ${className}`}
-        style={{ backgroundColor: '#F8C46F' }}
+        className={`flex flex-col justify-between px-8 md:px-12 pt-4 md:pt-6 pb-0 relative overflow-hidden rounded-t-2xl md:mx-auto ${className}`}
+        style={{ 
+          backgroundColor: '#F8C46F',
+          width: footerWidth
+        }}
       >
         <div className="relative z-10 flex flex-col w-full h-full">
           {/* Call to action */}

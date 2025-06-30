@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { projectData } from '@/data/projects';
-import ProjectArticle from '@/components/project-article';
+import ProjectArticle from '@/components/article';
 
 interface ProjectPageProps {
   params: {
