@@ -69,15 +69,22 @@ export default function Logo() {
       { threshold: 0.1 }
     )
 
-    if (mountRef.current) {
-      observer.observe(mountRef.current)
+    const currentElement = mountRef.current
+    if (currentElement) {
+      observer.observe(currentElement)
     }
 
-    return () => observer.disconnect()
+    return () => {
+      if (currentElement) {
+        observer.unobserve(currentElement)
+      }
+      observer.disconnect()
+    }
   }, [])
 
   useEffect(() => {
-    if (!mountRef.current) return
+    const currentMountRef = mountRef.current
+    if (!currentMountRef) return
 
     isMobile.current = window.innerWidth <= 768
 
@@ -86,7 +93,7 @@ export default function Logo() {
 
     const camera = new THREE.PerspectiveCamera(
       75,
-      mountRef.current.clientWidth / mountRef.current.clientHeight,
+      currentMountRef.clientWidth / currentMountRef.clientHeight,
       0.1,
       1000
     )
@@ -109,13 +116,13 @@ export default function Logo() {
     const pixelRatio = isMobile.current ? 1 : Math.min(window.devicePixelRatio, 2)
     renderer.setPixelRatio(pixelRatio)
     
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight)
+    renderer.setSize(currentMountRef.clientWidth, currentMountRef.clientHeight)
     renderer.setClearColor(0x000000, 0)
     
     // Disable shadows and advanced features for mobile
     renderer.shadowMap.enabled = false
     rendererRef.current = renderer
-    mountRef.current.appendChild(renderer.domElement)
+    currentMountRef.appendChild(renderer.domElement)
 
     // Minimal lighting for mobile performance
     const ambientLight = new THREE.AmbientLight(0xffffff, isMobile.current ? 0.8 : 0.6)
@@ -215,9 +222,9 @@ export default function Logo() {
     }
 
     // Attach mouse events to canvas only (not document) for better performance
-    if (!isMobile.current && mountRef.current) {
-      mountRef.current.addEventListener('mousemove', handleMouseMove, { passive: true })
-      mountRef.current.addEventListener('mouseleave', handleMouseLeave, { passive: true })
+    if (!isMobile.current && currentMountRef) {
+      currentMountRef.addEventListener('mousemove', handleMouseMove, { passive: true })
+      currentMountRef.addEventListener('mouseleave', handleMouseLeave, { passive: true })
     }
     window.addEventListener('resize', handleResize, { passive: true })
     animate(0)
@@ -226,7 +233,6 @@ export default function Logo() {
       if (frameId.current) cancelAnimationFrame(frameId.current)
       
       // Clean up canvas-specific event listeners
-      const currentMountRef = mountRef.current
       if (!isMobile.current && currentMountRef) {
         currentMountRef.removeEventListener('mousemove', handleMouseMove)
         currentMountRef.removeEventListener('mouseleave', handleMouseLeave)

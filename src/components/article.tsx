@@ -6,19 +6,19 @@ import { ProjectInfo } from '../data/projects';
 import Footer from './footer';
 import StickyHeader from './nav';
 
+const sections = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'problem', label: 'Problem' },
+  { id: 'solution', label: 'Solution' },
+  { id: 'reflection', label: 'Reflection' }
+];
+
 interface ProjectArticleProps {
   project: ProjectInfo;
 }
 
 export default function ProjectArticle({ project }: ProjectArticleProps) {
   const [activeSection, setActiveSection] = useState('overview');
-
-  const sections = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'problem', label: 'Problem' },
-    { id: 'solution', label: 'Solution' },
-    { id: 'reflection', label: 'Reflection' }
-  ];
 
   const scrollToSection = (sectionId: string) => {
     if (sectionId === 'overview') {

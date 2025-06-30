@@ -3,13 +3,14 @@ import { projectData } from '@/data/projects';
 import ProjectArticle from '@/components/article';
 
 interface ProjectPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function ProjectPage({ params }: ProjectPageProps) {
-  const projectId = parseInt(params.id);
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const { id } = await params;
+  const projectId = parseInt(id);
   const project = projectData.find(p => p.id === projectId);
 
   if (!project) {

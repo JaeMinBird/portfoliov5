@@ -30,17 +30,18 @@ export default function Bumper({ className = '', number, sectionHeader, id }: Bu
       }
     };
 
-    if (bumperRef.current) {
-      observer.observe(bumperRef.current);
+    const currentElement = bumperRef.current;
+    if (currentElement) {
+      observer.observe(currentElement);
       window.addEventListener('scroll', handleScroll, { passive: true });
       handleScroll();
     }
 
     return () => {
-      if (bumperRef.current) {
-        observer.unobserve(bumperRef.current);
-        window.removeEventListener('scroll', handleScroll);
+      if (currentElement) {
+        observer.unobserve(currentElement);
       }
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
