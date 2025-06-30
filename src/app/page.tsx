@@ -2,15 +2,13 @@
 
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { 
-  StickyHeader, 
-  Logo, 
-  Bumper, 
-  Experience, 
-  Projects, 
-  Footer, 
-  Bio 
-} from "@/components";
+import StickyHeader from "@/components/nav";
+import Logo from "@/components/logo";
+import Bumper from "@/components/bumper";
+import Projects from "@/components/projects";
+import Footer from "@/components/footer";
+import Bio from "@/components/bio";
+import Experience from "@/components/ExperienceWrapper";
 
 export default function Home() {
   const { scrollY } = useScroll();
