@@ -264,12 +264,16 @@ export default function Projects() {
                   <div className="flex flex-col h-full w-full">
                     {/* Project Image - Slightly rounded */}
                     <motion.div 
-                      className="w-full aspect-square bg-gray-100 rounded-xs mb-2 group-hover:-translate-y-4 transition-transform duration-300"
-                      style={{ aspectRatio: '1/1' }}
+                      className="w-full aspect-square rounded-xs mb-2 group-hover:-translate-y-4 transition-transform duration-300 overflow-hidden flex items-center justify-center"
+                      style={{ aspectRatio: '1/1', backgroundColor: '#f5f5f5' }}
                     >
-                      <div className="w-full h-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-gray-500 text-sm md:text-lg font-medium rounded-xs">
-                        {project.title}
-                      </div>
+                      <img 
+                        src={project.image} 
+                        alt={project.title}
+                        className="rounded-xs object-contain"
+                        style={{ width: '70%', height: 'auto' }}
+                        loading="lazy"
+                      />
                     </motion.div>
 
                     {/* Project Title Container - Fixed height for up to 2 lines */}

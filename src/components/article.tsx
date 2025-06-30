@@ -112,14 +112,24 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
       <div className="w-[90vw] md:w-[70vw] lg:w-[60vw] mx-auto pt-20 md:pt-32 px-4 md:px-0">
         {/* Hero Image */}
         <motion.div 
-          className="w-[80vw] md:w-[50vw] lg:w-[40vw] mx-auto aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden mb-12 md:mb-16"
+          className="w-[80vw] md:w-[50vw] lg:w-[40vw] mx-auto aspect-[4/3] rounded-lg overflow-hidden mb-12 md:mb-16 flex items-center justify-center"
+          style={{ backgroundColor: '#f5f5f5' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-gray-600 text-2xl font-medium">
-            {project.heroImage || 'Project Hero Image'}
-          </div>
+          {project.heroImage ? (
+            <img 
+              src={project.heroImage} 
+              alt={`${project.title} hero image`}
+              className="rounded-lg object-contain"
+              style={{ width: '85%', height: 'auto' }}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-gray-600 text-2xl font-medium">
+              {project.title}
+            </div>
+          )}
         </motion.div>
 
         {/* Overview Section */}
@@ -245,13 +255,16 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
                 PROBLEM
               </h2>
               {/* Section Image */}
-              {project.sectionImages?.problem && (
-                <div className="w-full aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
-                  <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm">
-                    Section Image
-                  </div>
+              {project.sectionImages?.problem ? (
+                <div className="w-full aspect-[4/3] rounded-lg overflow-hidden mt-4 flex items-center justify-center" style={{ backgroundColor: '#f5f5f5' }}>
+                  <img 
+                    src={project.sectionImages.problem} 
+                    alt={`${project.title} problem section`}
+                    className="rounded-lg object-contain"
+                    style={{ width: '85%', height: 'auto' }}
+                  />
                 </div>
-              )}
+              ) : null}
             </div>
             
             {/* Right Side - 60% */}
@@ -279,13 +292,16 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
                 SOLUTION
               </h2>
               {/* Section Image */}
-              {project.sectionImages?.solution && (
-                <div className="w-full aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
-                  <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm">
-                    Section Image
-                  </div>
+              {project.sectionImages?.solution ? (
+                <div className="w-full aspect-[4/3] rounded-lg overflow-hidden mt-4 flex items-center justify-center" style={{ backgroundColor: '#f5f5f5' }}>
+                  <img 
+                    src={project.sectionImages.solution} 
+                    alt={`${project.title} solution section`}
+                    className="rounded-lg object-contain"
+                    style={{ width: '85%', height: 'auto' }}
+                  />
                 </div>
-              )}
+              ) : null}
             </div>
             
             {/* Right Side - 60% */}
@@ -313,13 +329,16 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
                 REFLECTION
               </h2>
               {/* Section Image */}
-              {project.sectionImages?.reflection && (
-                <div className="w-full aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
-                  <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm">
-                    Section Image
-                  </div>
+              {project.sectionImages?.reflection ? (
+                <div className="w-full aspect-[4/3] rounded-lg overflow-hidden mt-4 flex items-center justify-center" style={{ backgroundColor: '#f5f5f5' }}>
+                  <img 
+                    src={project.sectionImages.reflection} 
+                    alt={`${project.title} reflection section`}
+                    className="rounded-lg object-contain"
+                    style={{ width: '85%', height: 'auto' }}
+                  />
                 </div>
-              )}
+              ) : null}
             </div>
             
             {/* Right Side - 60% */}
