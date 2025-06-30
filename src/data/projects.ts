@@ -15,6 +15,12 @@ export interface ProjectInfo {
   problem?: string;
   solution?: string;
   reflection?: string;
+  // Section images
+  sectionImages?: {
+    problem?: string;
+    solution?: string;
+    reflection?: string;
+  };
 }
 
 export const projectData: ProjectInfo[] = [

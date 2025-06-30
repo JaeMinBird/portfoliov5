@@ -238,17 +238,25 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 xl:gap-12">
             {/* Left Side - 40% */}
-            <div className="w-full md:w-2/5">
-              <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6 md:mb-0" style={{ color: '#F8C46F' }}>
+            <div className="w-full md:w-2/5 lg:w-[35%]">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 md:mb-0" style={{ color: '#F8C46F' }}>
                 PROBLEM
               </h2>
+              {/* Section Image */}
+              {project.sectionImages?.problem && (
+                <div className="w-full aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
+                  <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm">
+                    Section Image
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Right Side - 60% */}
-            <div className="w-full md:w-3/5 flex items-center">
-              <p className="text-xl md:text-2xl leading-relaxed text-black">
+            <div className="w-full md:w-3/5 lg:w-[65%] flex items-center">
+              <p className="text-lg sm:text-xl md:text-xl lg:text-2xl leading-relaxed text-black">
                 {project.problem || 'Problem description not available for this project.'}
               </p>
             </div>
@@ -264,17 +272,25 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 xl:gap-12">
             {/* Left Side - 40% */}
-            <div className="w-full md:w-2/5">
-              <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6 md:mb-0" style={{ color: '#F8C46F' }}>
+            <div className="w-full md:w-2/5 lg:w-[35%]">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 md:mb-0" style={{ color: '#F8C46F' }}>
                 SOLUTION
               </h2>
+              {/* Section Image */}
+              {project.sectionImages?.solution && (
+                <div className="w-full aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
+                  <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm">
+                    Section Image
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Right Side - 60% */}
-            <div className="w-full md:w-3/5 flex items-center">
-              <p className="text-xl md:text-2xl leading-relaxed text-black">
+            <div className="w-full md:w-3/5 lg:w-[65%] flex items-center">
+              <p className="text-lg sm:text-xl md:text-xl lg:text-2xl leading-relaxed text-black">
                 {project.solution || 'Solution description not available for this project.'}
               </p>
             </div>
@@ -290,17 +306,25 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 xl:gap-12">
             {/* Left Side - 40% */}
-            <div className="w-full md:w-2/5">
-              <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6 md:mb-0" style={{ color: '#F8C46F' }}>
+            <div className="w-full md:w-2/5 lg:w-[35%]">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 md:mb-0" style={{ color: '#F8C46F' }}>
                 REFLECTION
               </h2>
+              {/* Section Image */}
+              {project.sectionImages?.reflection && (
+                <div className="w-full aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden">
+                  <div className="w-full h-full bg-gray-300 flex items-center justify-center text-gray-600 text-sm">
+                    Section Image
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Right Side - 60% */}
-            <div className="w-full md:w-3/5 flex items-center">
-              <p className="text-xl md:text-2xl leading-relaxed text-black">
+            <div className="w-full md:w-3/5 lg:w-[65%] flex items-center">
+              <p className="text-lg sm:text-xl md:text-xl lg:text-2xl leading-relaxed text-black">
                 {project.reflection || 'Reflection not available for this project.'}
               </p>
             </div>
