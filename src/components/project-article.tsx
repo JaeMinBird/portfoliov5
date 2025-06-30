@@ -36,42 +36,25 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const centerOfScreen = scrollPosition + windowHeight / 2;
+      const scrollPosition = window.scrollY + 150;
       
-      // If we're at the bottom of the page, set to reflection
-      if (scrollPosition + windowHeight >= documentHeight - 50) {
-        setActiveSection('reflection');
-        return;
-      }
-      
-      // If we're near the top, set to overview
       if (scrollPosition < 400) {
         setActiveSection('overview');
         return;
       }
 
-      // Check which section is closest to the center of the screen
-      let closestSection = 'overview';
-      let closestDistance = Infinity;
-
       for (const section of sections.slice(1)) {
         const element = document.getElementById(section.id);
         if (element) {
           const elementTop = element.offsetTop;
-          const elementCenter = elementTop + element.offsetHeight / 2;
-          const distance = Math.abs(centerOfScreen - elementCenter);
+          const elementBottom = elementTop + element.offsetHeight;
           
-          if (distance < closestDistance) {
-            closestDistance = distance;
-            closestSection = section.id;
+          if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
+            setActiveSection(section.id);
+            return;
           }
         }
       }
-      
-      setActiveSection(closestSection);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -85,7 +68,7 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
       
       {/* Navigation Sidebar */}
       <motion.div 
-        className="fixed left-8 top-1/2 -translate-y-1/2 z-50 hidden lg:block"
+        className="fixed left-4 lg:left-8 top-1/2 -translate-y-1/2 z-50 hidden xl:block"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5 }}
@@ -119,10 +102,10 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
       </motion.div>
 
       {/* Main Content */}
-      <div className="w-[60vw] mx-auto pt-32">
+      <div className="w-[90vw] md:w-[70vw] lg:w-[60vw] mx-auto pt-20 md:pt-32 px-4 md:px-0">
         {/* Hero Image */}
         <motion.div 
-          className="w-[50vw] mx-auto aspect-[2/1] bg-gray-200 rounded-lg overflow-hidden mb-16"
+          className="w-full md:w-[60vw] lg:w-[50vw] mx-auto aspect-[2/1] bg-gray-200 rounded-lg overflow-hidden mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -135,64 +118,103 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
         {/* Overview Section */}
         <motion.section 
           id="overview" 
-          className="mb-24"
+          className="mb-16 md:mb-24"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="flex gap-12">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
             {/* Left Side - 80% */}
-            <div className="w-4/5">
+            <div className="w-full lg:w-4/5">
               {/* Project Title */}
-              <h1 className="text-5xl md:text-6xl font-light mb-6 text-black leading-tight text-left">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-light mb-4 text-black leading-tight text-left">
                 {project.title}
               </h1>
 
               {/* Concept Sentence */}
-              <h2 className="text-5xl md:text-6xl font-light mb-12 text-gray-400 leading-tight text-left">
-                A comprehensive solution
+              <h2 className="text-3xl md:text-4xl font-light mb-8 lg:mb-12 text-gray-400 leading-tight text-left">
+                {project.conceptSentence || 'A comprehensive solution'}
               </h2>
 
               {/* Project Description */}
-              <p className="text-xl leading-relaxed text-black max-w-4xl text-left">
+              <p className="text-xl md:text-2xl leading-relaxed text-black max-w-4xl text-left mb-8 lg:mb-0">
                 {project.description}
               </p>
             </div>
 
             {/* Right Side - 20% */}
-            <div className="w-1/5 flex items-center">
+            <div className="w-full lg:w-1/5 lg:flex lg:items-center">
               {/* RPS (Role, Platform, Stack) */}
-              <div className="flex flex-col gap-8 text-base">
-                <div>
-                  <div className="mb-2">
+              <div className="w-full">
+                {/* Mobile: 2-column grid */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-3 lg:hidden text-sm">
+                  <div className="text-left">
                     <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
                       [ ROLE ]
                     </span>
                   </div>
-                  <div className="text-black font-light">
-                    {project.role || 'Developer'}
+                  <div className="text-left">
+                    <span className="text-black font-light">
+                      {project.role || 'Developer'}
+                    </span>
                   </div>
-                </div>
-                
-                <div>
-                  <div className="mb-2">
+                  
+                  <div className="text-left">
                     <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
                       [ PLATFORM ]
                     </span>
                   </div>
-                  <div className="text-black font-light">
-                    {project.platform || 'Web Application'}
+                  <div className="text-left">
+                    <span className="text-black font-light">
+                      {project.platform || 'Web Application'}
+                    </span>
                   </div>
-                </div>
-                
-                <div>
-                  <div className="mb-2">
+                  
+                  <div className="text-left">
                     <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
                       [ STACK ]
                     </span>
                   </div>
-                  <div className="text-black font-light">
-                    {(project.stack || project.technologies).join(', ')}
+                  <div className="text-left">
+                    <span className="text-black font-light text-sm">
+                      {(project.stack || project.technologies).join(', ')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desktop: Original vertical layout */}
+                <div className="hidden lg:flex lg:flex-col lg:gap-8 text-base">
+                  <div>
+                    <div className="mb-2">
+                      <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
+                        [ ROLE ]
+                      </span>
+                    </div>
+                    <div className="text-black font-light">
+                      {project.role || 'Developer'}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="mb-2">
+                      <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
+                        [ PLATFORM ]
+                      </span>
+                    </div>
+                    <div className="text-black font-light">
+                      {project.platform || 'Web Application'}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="mb-2">
+                      <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
+                        [ STACK ]
+                      </span>
+                    </div>
+                    <div className="text-black font-light">
+                      {(project.stack || project.technologies).join(', ')}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -203,57 +225,84 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
         {/* Problem Section */}
         <motion.section 
           id="problem" 
-          className="mb-24"
+          className="mb-16 md:mb-24"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-light mb-12 leading-tight" style={{ color: '#F8C46F' }}>
-            Problem
-          </h2>
-          <p className="text-2xl leading-relaxed text-black max-w-4xl">
-            {project.problem || 'Problem description not available for this project.'}
-          </p>
+          <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+            {/* Left Side - 40% */}
+            <div className="w-full md:w-2/5">
+              <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6 md:mb-0" style={{ color: '#F8C46F' }}>
+                PROBLEM
+              </h2>
+            </div>
+            
+            {/* Right Side - 60% */}
+            <div className="w-full md:w-3/5 flex items-center">
+              <p className="text-xl md:text-2xl leading-relaxed text-black">
+                {project.problem || 'Problem description not available for this project.'}
+              </p>
+            </div>
+          </div>
         </motion.section>
 
         {/* Solution Section */}
         <motion.section 
           id="solution" 
-          className="mb-24"
+          className="mb-16 md:mb-24"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-light mb-12 leading-tight" style={{ color: '#F8C46F' }}>
-            Solution
-          </h2>
-          <p className="text-2xl leading-relaxed text-black max-w-4xl">
-            {project.solution || 'Solution description not available for this project.'}
-          </p>
+          <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+            {/* Left Side - 40% */}
+            <div className="w-full md:w-2/5">
+              <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6 md:mb-0" style={{ color: '#F8C46F' }}>
+                SOLUTION
+              </h2>
+            </div>
+            
+            {/* Right Side - 60% */}
+            <div className="w-full md:w-3/5 flex items-center">
+              <p className="text-xl md:text-2xl leading-relaxed text-black">
+                {project.solution || 'Solution description not available for this project.'}
+              </p>
+            </div>
+          </div>
         </motion.section>
 
         {/* Reflection Section */}
         <motion.section 
           id="reflection" 
-          className="mb-24"
+          className="mb-16 md:mb-24"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-light mb-12 leading-tight" style={{ color: '#F8C46F' }}>
-            Reflection
-          </h2>
-          <p className="text-2xl leading-relaxed text-black max-w-4xl">
-            {project.reflection || 'Reflection not available for this project.'}
-          </p>
+          <div className="flex flex-col md:flex-row gap-8 md:gap-12">
+            {/* Left Side - 40% */}
+            <div className="w-full md:w-2/5">
+              <h2 className="text-4xl md:text-6xl font-bold leading-tight mb-6 md:mb-0" style={{ color: '#F8C46F' }}>
+                REFLECTION
+              </h2>
+            </div>
+            
+            {/* Right Side - 60% */}
+            <div className="w-full md:w-3/5 flex items-center">
+              <p className="text-xl md:text-2xl leading-relaxed text-black">
+                {project.reflection || 'Reflection not available for this project.'}
+              </p>
+            </div>
+          </div>
         </motion.section>
       </div>
 
       {/* Footer */}
-      <Footer />
+      <Footer width="60vw" />
     </div>
   );
 } 

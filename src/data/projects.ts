@@ -8,6 +8,7 @@ export interface ProjectInfo {
   technologies: string[];
   // Extended properties for article page
   heroImage?: string;
+  conceptSentence?: string;
   role?: string;
   platform?: string;
   stack?: string[];
@@ -27,6 +28,7 @@ export const projectData: ProjectInfo[] = [
     technologies: ["Python", "TensorFlow", "CNNs"],
     // Article content
     heroImage: "/placeholder-hero-1200x600.jpg",
+    conceptSentence: "Automating sentiment understanding",
     role: "ML Engineer & Data Scientist",
     platform: "Web Application",
     stack: ["Python", "TensorFlow", "Keras", "Scikit-learn", "FastAPI"],
@@ -44,6 +46,7 @@ export const projectData: ProjectInfo[] = [
     technologies: ["React", "Node.js", "PostgreSQL"],
     // Article content
     heroImage: "/placeholder-hero-1200x600.jpg",
+    conceptSentence: "Real-time inventory management",
     role: "Full Stack Developer",
     platform: "Web Application",
     stack: ["React", "TypeScript", "Node.js", "Express", "PostgreSQL", "Redis"],
