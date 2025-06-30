@@ -27,7 +27,7 @@ export const jobData: JobInfo[] = [
   {
     id: 3,
     company: "Albany Accounting & Tax",
-    title: "Web Development Intern",
+    title: "WebDev Intern",
     startDate: "May 2024",
     endDate: "Aug 2024",
     description: "Created full-stack websites with Laravel/October CMS and Docker containerization. Presented UI/UX prototypes to clients reducing development time by 2+ sprints."
