@@ -336,7 +336,9 @@ export default function StickyHeader() {
                 PROJECTS
               </motion.a>
               <motion.a
-                href="/resume"
+                href="/documents/RESUME.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-5xl font-bold text-[#F8C46F]"
                 style={{ fontFamily: 'var(--font-fredoka)' }}
                 initial={{ opacity: 0, y: 20 }}

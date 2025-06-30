@@ -89,7 +89,7 @@ export default function Footer({ className = '', width = '80vw' }: FooterProps) 
               </div>
               <div className="overflow-hidden leading-none mb-2 sm:mb-0" style={{ height: '1.25rem' }}>
                 <motion.a 
-                  href="/resume.pdf" 
+                  href="/documents/RESUME.pdf" 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="text-lg md:text-xl font-medium flex flex-col leading-none"
