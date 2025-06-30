@@ -105,7 +105,7 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
       <div className="w-[90vw] md:w-[70vw] lg:w-[60vw] mx-auto pt-20 md:pt-32 px-4 md:px-0">
         {/* Hero Image */}
         <motion.div 
-          className="w-full md:w-[60vw] lg:w-[50vw] mx-auto aspect-[2/1] bg-gray-200 rounded-lg overflow-hidden mb-12 md:mb-16"
+          className="w-[80vw] md:w-[50vw] lg:w-[40vw] mx-auto aspect-[4/3] bg-gray-200 rounded-lg overflow-hidden mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -147,7 +147,7 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
               {/* RPS (Role, Platform, Stack) */}
               <div className="w-full">
                 {/* Mobile: 2-column grid */}
-                <div className="grid grid-cols-2 gap-x-4 gap-y-3 lg:hidden text-sm">
+                <div className="grid gap-x-4 gap-y-3 lg:hidden text-sm" style={{ gridTemplateColumns: '1fr 2fr' }}>
                   <div className="text-left">
                     <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
                       [ ROLE ]
