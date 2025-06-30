@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic';
 
 // Dynamically import the Experience component to avoid build issues
-const ExperienceComponent = dynamic(() => import('./experience'), {
+const ExperienceComponent = dynamic(() => import('./Experience'), {
   ssr: false,
   loading: () => (
     <div className="bg-white" style={{ height: '600px' }}>
