@@ -8,7 +8,7 @@ import Bumper from "@/components/bumper";
 import Projects from "@/components/projects";
 import Footer from "@/components/footer";
 import Bio from "@/components/bio";
-import Experience from "@/components/ExperienceWrapper";
+import Experience from "@/components/experience";
 
 export default function Home() {
   const { scrollY } = useScroll();
