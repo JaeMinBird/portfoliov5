@@ -29,13 +29,13 @@ export default function Projects() {
   const filteredProjects = projectData.filter(project => {
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Featured') return project.featured;
-    return project.category === activeFilter;
+    return project.categories.includes(activeFilter);
   });
 
   const getProjectCount = (category: FilterCategory) => {
     if (category === 'All') return projectData.length;
     if (category === 'Featured') return projectData.filter(p => p.featured).length;
-    return projectData.filter(p => p.category === category).length;
+    return projectData.filter(p => p.categories.includes(category)).length;
   };
 
   // Improved line breaking logic using standard practices
