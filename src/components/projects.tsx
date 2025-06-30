@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { projectData, ProjectInfo, FilterCategory } from '../data/projects';
+import { projectData, FilterCategory } from '../data/projects';
 
 export default function Projects() {
   const [activeFilter, setActiveFilter] = useState<FilterCategory>('Featured');
@@ -241,7 +241,7 @@ export default function Projects() {
                 }
               }}
             >
-              {filteredProjects.map((project, index) => (
+              {filteredProjects.map((project) => (
                 <motion.div
                   key={project.id}
                   className="group cursor-pointer flex flex-col w-full"

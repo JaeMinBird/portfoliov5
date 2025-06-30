@@ -38,7 +38,7 @@ export default function Bio() {
                 viewport={{ once: true }}
               >
                 <p className="text-3xl md:text-5xl text-gray-600 font-light tracking-wide">
-                  hello i'm
+                  hello i&apos;m
                 </p>
               </motion.div>
               
@@ -94,8 +94,8 @@ export default function Bio() {
                     className="transition-opacity duration-300 ease-out hover:opacity-70"
                     style={{ color: '#6ABF6F' }}
                   >
-                    JiaYou Tennis
-                  </a>. Beyond tech, I've held multiple positions in AAPI organizations, having raised over $10,000 through community engagement work. When not coding, you'll find me{' '}
+                                      JiaYou Tennis
+                </a>. Beyond tech, I&apos;ve held multiple positions in AAPI organizations, having raised over $10,000 through community engagement work. When not coding, you&apos;ll find me{' '}
                   <span 
                     className="relative cursor-pointer"
                     style={{ color: '#F8C46F' }}
@@ -147,7 +147,7 @@ export default function Bio() {
               viewport={{ once: true }}
             >
               <p className="text-6xl text-gray-600 font-light tracking-wide">
-                hello i'm
+                hello i&apos;m
               </p>
             </motion.div>
             
@@ -204,7 +204,7 @@ export default function Bio() {
                   style={{ color: '#6ABF6F' }}
                 >
                   JiaYou Tennis
-                </a>. Beyond tech, I've held multiple positions in AAPI organizations, having raised over $10,000 through community engagement work. When not coding, you'll find me{' '}
+                </a>. Beyond tech, I&apos;ve held multiple positions in AAPI organizations, having raised over $10,000 through community engagement work. When not coding, you&apos;ll find me{' '}
                 <span 
                   className="relative cursor-pointer"
                   style={{ color: '#F8C46F' }}
