@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { jobData, JobInfo } from '../data/a';
+import { jobData, JobInfo } from '../data/experience';
 
 export default function Experience() {
   const [hoveredJob, setHoveredJob] = useState<JobInfo | null>(null);
