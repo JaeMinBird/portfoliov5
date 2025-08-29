@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useCallback } from 'react'
+import React, { useRef, useEffect, useCallback, useState } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 
@@ -16,6 +16,39 @@ export default function Logo() {
   const isMobile = useRef(false)
   const mobileTime = useRef(0)
   const isVisible = useRef(true)
+  
+  // Add state for WebGL support and loading
+  const [webglSupported, setWebglSupported] = useState<boolean | null>(null)
+  const [isClient, setIsClient] = useState(false)
+
+  // Check WebGL support safely
+  const checkWebGLSupport = useCallback(() => {
+    try {
+      const canvas = document.createElement('canvas')
+      const gl = canvas.getContext('webgl') as WebGLRenderingContext | null || 
+                 canvas.getContext('experimental-webgl') as WebGLRenderingContext | null
+      const supported = !!gl
+      
+      // Clean up
+      if (gl) {
+        const loseContext = gl.getExtension('WEBGL_lose_context')
+        if (loseContext) {
+          loseContext.loseContext()
+        }
+      }
+      canvas.remove()
+      
+      return supported
+    } catch (e) {
+      return false
+    }
+  }, [])
+
+  // Client-side mounting check
+  useEffect(() => {
+    setIsClient(true)
+    setWebglSupported(checkWebGLSupport())
+  }, [checkWebGLSupport])
 
   // Simplified mouse handler for canvas-only tracking
   const handleMouseMove = useCallback((event: MouseEvent) => {
@@ -83,6 +116,9 @@ export default function Logo() {
   }, [])
 
   useEffect(() => {
+    // Only run on client-side with WebGL support
+    if (!isClient || webglSupported === false) return
+    
     const currentMountRef = mountRef.current
     if (!currentMountRef) return
 
@@ -97,27 +133,41 @@ export default function Logo() {
       0.1,
       1000
     )
-    camera.position.set(0, 0, 3.5) // Moved closer from 5 to 3.5
+    camera.position.set(0, 0, 3.5)
     camera.lookAt(0, 0, 0)
     cameraRef.current = camera
 
-    // Mobile-optimized renderer settings
-    const renderer = new THREE.WebGLRenderer({ 
-      antialias: !isMobile.current, // Disable antialiasing on mobile
-      alpha: true,
-      powerPreference: isMobile.current ? "default" : "high-performance",
-      stencil: false,
-      depth: false,
-      preserveDrawingBuffer: false,
-      failIfMajorPerformanceCaveat: true
-    })
+    // Enhanced WebGL renderer creation with better error handling
+    let renderer: THREE.WebGLRenderer
+    try {
+      renderer = new THREE.WebGLRenderer({ 
+        antialias: !isMobile.current,
+        alpha: true,
+        powerPreference: isMobile.current ? "default" : "high-performance",
+        stencil: false,
+        depth: false,
+        preserveDrawingBuffer: false,
+        failIfMajorPerformanceCaveat: false, // Changed to false for better compatibility
+      })
+    } catch (error) {
+      console.warn('WebGL renderer creation failed, falling back to fallback UI:', error)
+      setWebglSupported(false)
+      return
+    }
     
     // Aggressive pixel ratio optimization for mobile
     const pixelRatio = isMobile.current ? 1 : Math.min(window.devicePixelRatio, 2)
     renderer.setPixelRatio(pixelRatio)
     
-    renderer.setSize(currentMountRef.clientWidth, currentMountRef.clientHeight)
-    renderer.setClearColor(0x000000, 0)
+    try {
+      renderer.setSize(currentMountRef.clientWidth, currentMountRef.clientHeight)
+      renderer.setClearColor(0x000000, 0)
+    } catch (error) {
+      console.warn('WebGL renderer setup failed:', error)
+      setWebglSupported(false)
+      renderer.dispose()
+      return
+    }
     
     // Disable shadows and advanced features for mobile
     renderer.shadowMap.enabled = false
@@ -145,7 +195,7 @@ export default function Logo() {
         const material = new THREE.MeshBasicMaterial({
           color: 0xF8C46F,
           wireframe: true,
-          transparent: false, // Disable transparency on mobile for performance
+          transparent: false,
           opacity: 1,
         })
 
@@ -159,7 +209,6 @@ export default function Logo() {
           if (child instanceof THREE.Mesh) {
             child.material = material
             child.frustumCulled = false
-            // Disable casting/receiving shadows
             child.castShadow = false
             child.receiveShadow = false
           }
@@ -171,7 +220,7 @@ export default function Logo() {
         model.position.sub(center)
 
         const maxDim = Math.max(size.x, size.y, size.z)
-        const scale = 3.5 / maxDim // Increased from 4 to 5.5 for larger model
+        const scale = 3.5 / maxDim
         model.scale.setScalar(scale)
 
         const pivot = new THREE.Group()
@@ -180,35 +229,32 @@ export default function Logo() {
         pivotRef.current = pivot
       },
       undefined,
-      (error) => console.error('Model load error:', error)
+      (error) => {
+        console.error('Model load error:', error)
+        // Don't set webglSupported to false here, as the model loading is separate
+      }
     )
 
     let lastTime = 0
-    // Reduce FPS target for mobile
     const targetFPS = isMobile.current ? 30 : 60
     const frameInterval = 1000 / targetFPS
 
     const animate = (currentTime: number) => {
       frameId.current = requestAnimationFrame(animate)
 
-      // Skip rendering if not visible for performance
       if (!isVisible.current) return
 
-      // Throttle to target FPS
       if (currentTime - lastTime < frameInterval) return
       lastTime = currentTime
 
       if (pivotRef.current) {
         if (isMobile.current) {
-          // Simplified mobile animation - no delta time calculations
-          mobileTime.current += 0.016 // Fixed timestep for consistency
+          mobileTime.current += 0.016
           
-          // Much simpler rotation calculation
           const time = mobileTime.current * 0.8
           pivotRef.current.rotation.y = Math.sin(time) * 0.3
           pivotRef.current.rotation.x = Math.cos(time * 0.7) * 0.2
         } else {
-          // Desktop interpolation
           const lerpFactor = 0.08
           
           pivotRef.current.rotation.y += (targetRotation.current.y - pivotRef.current.rotation.y) * lerpFactor
@@ -217,11 +263,16 @@ export default function Logo() {
       }
 
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
-        rendererRef.current.render(sceneRef.current, cameraRef.current)
+        try {
+          rendererRef.current.render(sceneRef.current, cameraRef.current)
+        } catch (error) {
+          console.warn('WebGL render error:', error)
+          setWebglSupported(false)
+        }
       }
     }
 
-    // Attach mouse events to canvas only (not document) for better performance
+    // Attach mouse events to canvas only
     if (!isMobile.current && currentMountRef) {
       currentMountRef.addEventListener('mousemove', handleMouseMove, { passive: true })
       currentMountRef.addEventListener('mouseleave', handleMouseLeave, { passive: true })
@@ -232,20 +283,17 @@ export default function Logo() {
     return () => {
       if (frameId.current) cancelAnimationFrame(frameId.current)
       
-      // Clean up canvas-specific event listeners
       if (!isMobile.current && currentMountRef) {
         currentMountRef.removeEventListener('mousemove', handleMouseMove)
         currentMountRef.removeEventListener('mouseleave', handleMouseLeave)
       }
       window.removeEventListener('resize', handleResize)
       
-      // Fix: Store the current reference before cleanup
       if (currentMountRef && rendererRef.current?.domElement) {
         currentMountRef.removeChild(rendererRef.current.domElement)
       }
       rendererRef.current?.dispose()
       
-      // Clean up materials and geometries
       if (sceneRef.current) {
         sceneRef.current.traverse((object) => {
           if (object instanceof THREE.Mesh) {
@@ -259,12 +307,34 @@ export default function Logo() {
         })
       }
     }
-  }, [handleMouseMove, handleMouseLeave, handleResize])
+  }, [isClient, webglSupported, handleMouseMove, handleMouseLeave, handleResize])
+
+  // Fallback UI for when WebGL is not supported or available
+  const FallbackLogo = () => (
+    <div className="w-full h-80 md:h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <img 
+        src="/logo.svg" 
+        alt="Logo" 
+        className="w-32 h-32 md:w-40 md:h-40 opacity-80"
+        style={{ filter: 'sepia(1) saturate(2) hue-rotate(25deg) brightness(1.1)' }}
+      />
+    </div>
+  )
+
+  // Show loading state during initial mount
+  if (!isClient) {
+    return <FallbackLogo />
+  }
+
+  // Show fallback if WebGL is not supported
+  if (webglSupported === false) {
+    return <FallbackLogo />
+  }
 
   return (
     <div 
       ref={mountRef} 
-      className="w-full h-80 md:h-96 rounded-2xl overflow-hidden" // Reduced from h-96 md:h-[500px] to h-80 md:h-96
+      className="w-full h-80 md:h-96 rounded-2xl overflow-hidden"
       style={{ pointerEvents: 'auto' }}
     />
   )
