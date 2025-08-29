@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import { projectData, FilterCategory } from '../data/projects';
 
 export default function Projects() {
@@ -262,18 +263,24 @@ export default function Projects() {
                   }}
                 >
                   <div className="flex flex-col h-full w-full">
-                    {/* Project Image - Slightly rounded */}
+                    {/* Project Image - Optimized with Next.js Image */}
                     <motion.div 
-                      className="w-full aspect-square rounded-xs mb-2 group-hover:-translate-y-4 transition-transform duration-300 overflow-hidden flex items-center justify-center"
-                      style={{ aspectRatio: '1/1', backgroundColor: '#f5f5f5' }}
+                      className="w-full aspect-square rounded-xs mb-2 group-hover:-translate-y-4 transition-transform duration-300 overflow-hidden flex items-center justify-center bg-gray-50"
+                      style={{ aspectRatio: '1/1' }}
                     >
-                      <img 
-                        src={project.image} 
-                        alt={project.title}
-                        className="rounded-xs object-contain"
-                        style={{ width: '70%', height: 'auto' }}
-                        loading="lazy"
-                      />
+                      <div className="relative w-[70%] h-[70%]">
+                        <Image 
+                          src={project.image} 
+                          alt={project.title}
+                          fill
+                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          className="rounded-xs object-contain"
+                          loading="lazy"
+                          quality={85}
+                          placeholder="blur"
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj9PmP/Z"
+                        />
+                      </div>
                     </motion.div>
 
                     {/* Project Title Container - Fixed height for up to 2 lines */}
