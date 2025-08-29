@@ -14,7 +14,7 @@ export const jobData: JobInfo[] = [
     title: "ML Research Assistant",
     startDate: "May 2025",
     endDate: "Present",
-    description: "Led development of ResNet computer vision models for real-time traffic classification. Optimized TensorFlow pipelines and deployed edge solutions achieving 40% faster training."
+    description: "Train and deploy machine learning computer vision models for traffic analysis. Compile and present technical documentation."
   },
   {
     id: 2,
@@ -22,7 +22,7 @@ export const jobData: JobInfo[] = [
     title: "Software Engineer",
     startDate: "Apr 2025",
     endDate: "Present",
-    description: "Developed AR tennis applications for Snapchat Spectacles using TypeScript. Built custom YOLO computer vision models and managed agile teams delivering 94% of milestones."
+    description: "Developed augmented reality tennis applications with OpenGL. Managed and led an agile development team."
   },
   {
     id: 3,
@@ -30,7 +30,7 @@ export const jobData: JobInfo[] = [
     title: "WebDev Intern",
     startDate: "May 2024",
     endDate: "Aug 2024",
-    description: "Created full-stack websites with Laravel/October CMS and Docker containerization. Presented UI/UX prototypes to clients reducing development time by 2+ sprints."
+    description: "Built secure client service platform with encrypted file management. Designed comprehensive UI/UX prototypes."
   },
   {
     id: 4,
@@ -38,6 +38,6 @@ export const jobData: JobInfo[] = [
     title: "Support Technician",
     startDate: "Jul 2021",
     endDate: "Aug 2023",
-    description: "Designed MySQL visual reporting systems and led disaster recovery for enterprise clients. Configured secure networks for 5+ clients including Amazon facilities."
+    description: "Supported enterprise disaster recovery operations for multiple clients. Developed visual report system for SQL database."
   }
 ];

@@ -265,7 +265,7 @@ export default function Projects() {
                   <div className="flex flex-col h-full w-full">
                     {/* Project Image - Optimized with Next.js Image */}
                     <motion.div 
-                      className="w-full aspect-square rounded-xs mb-2 group-hover:-translate-y-4 transition-transform duration-300 overflow-hidden flex items-center justify-center bg-gray-50"
+                      className="w-full aspect-square rounded-3xl mb-2 group-hover:-translate-y-4 transition-transform duration-300 overflow-hidden flex items-center justify-center bg-gray-100"
                       style={{ aspectRatio: '1/1' }}
                     >
                       <div className="relative w-[70%] h-[70%]">
@@ -274,7 +274,7 @@ export default function Projects() {
                           alt={project.title}
                           fill
                           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                          className="rounded-xs object-contain"
+                          className="rounded-3xl object-contain"
                           loading="lazy"
                           quality={85}
                           placeholder="blur"
@@ -306,7 +306,8 @@ export default function Projects() {
                             ) : (
                               <div className="overflow-hidden rounded-sm">
                                 <motion.div
-                                  className="bg-black text-white px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium select-none"
+                                  className="text-white px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium select-none"
+                                  style={{ backgroundColor: '#F8C46F' }}
                                   whileHover={{ 
                                     scale: 1.05,
                                     boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)"
