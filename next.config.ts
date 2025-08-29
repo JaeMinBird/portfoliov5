@@ -15,12 +15,8 @@ const nextConfig: NextConfig = {
   // Enable compression
   compress: true,
   
-  // Optimize bundle
-  swcMinify: true,
-  
   // Enable experimental features for better performance
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: ['framer-motion', 'three'],
   },
   
