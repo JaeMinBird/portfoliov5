@@ -3,6 +3,8 @@
 import React, { useRef, useEffect, useCallback, useState } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Logo() {
   const mountRef = useRef<HTMLDivElement>(null)
@@ -20,6 +22,7 @@ export default function Logo() {
   // Add state for WebGL support and loading
   const [webglSupported, setWebglSupported] = useState<boolean | null>(null)
   const [isClient, setIsClient] = useState(false)
+  const [modelLoaded, setModelLoaded] = useState(false)
 
   // Check WebGL support safely
   const checkWebGLSupport = useCallback(() => {
@@ -39,7 +42,7 @@ export default function Logo() {
       canvas.remove()
       
       return supported
-    } catch (e) {
+    } catch {
       return false
     }
   }, [])
@@ -50,13 +53,11 @@ export default function Logo() {
     setWebglSupported(checkWebGLSupport())
   }, [checkWebGLSupport])
 
-  // Simplified mouse handler for canvas-only tracking
   const handleMouseMove = useCallback((event: MouseEvent) => {
     if (isMobile.current || !mountRef.current) return
     
     const rect = mountRef.current.getBoundingClientRect()
     
-    // Simple normalized coordinates calculation
     const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
     const y = -((event.clientY - rect.top) / rect.height) * 2 + 1
     
@@ -65,21 +66,17 @@ export default function Logo() {
     targetRotation.current.x = -y * 0.4
   }, [])
 
-  // Handle mouse leave to smoothly return to neutral position
   const handleMouseLeave = useCallback(() => {
     if (isMobile.current) return
     
-    // Gradually return to neutral position
     targetRotation.current.y = 0
     targetRotation.current.x = 0
   }, [])
 
-  // Memoized resize handler
   const handleResize = useCallback(() => {
     if (cameraRef.current && rendererRef.current && mountRef.current) {
       const newIsMobile = window.innerWidth <= 768
       
-      // Only update if mobile state changed to prevent unnecessary work
       if (isMobile.current !== newIsMobile) {
         isMobile.current = newIsMobile
       }
@@ -117,7 +114,7 @@ export default function Logo() {
 
   useEffect(() => {
     // Only run on client-side with WebGL support
-    if (!isClient || webglSupported === false) return
+    if (!isClient || webglSupported !== true) return
     
     const currentMountRef = mountRef.current
     if (!currentMountRef) return
@@ -147,7 +144,7 @@ export default function Logo() {
         stencil: false,
         depth: false,
         preserveDrawingBuffer: false,
-        failIfMajorPerformanceCaveat: false, // Changed to false for better compatibility
+        failIfMajorPerformanceCaveat: false,
       })
     } catch (error) {
       console.warn('WebGL renderer creation failed, falling back to fallback UI:', error)
@@ -155,13 +152,12 @@ export default function Logo() {
       return
     }
     
-    // Aggressive pixel ratio optimization for mobile
     const pixelRatio = isMobile.current ? 1 : Math.min(window.devicePixelRatio, 2)
     renderer.setPixelRatio(pixelRatio)
     
     try {
       renderer.setSize(currentMountRef.clientWidth, currentMountRef.clientHeight)
-      renderer.setClearColor(0x000000, 0)
+      renderer.setClearColor(0x000000, 0) // Keep transparent background
     } catch (error) {
       console.warn('WebGL renderer setup failed:', error)
       setWebglSupported(false)
@@ -169,16 +165,13 @@ export default function Logo() {
       return
     }
     
-    // Disable shadows and advanced features for mobile
     renderer.shadowMap.enabled = false
     rendererRef.current = renderer
     currentMountRef.appendChild(renderer.domElement)
 
-    // Minimal lighting for mobile performance
     const ambientLight = new THREE.AmbientLight(0xffffff, isMobile.current ? 0.8 : 0.6)
     scene.add(ambientLight)
 
-    // Skip directional light on mobile
     if (!isMobile.current) {
       const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
       directionalLight.position.set(1, 1, 2)
@@ -191,7 +184,6 @@ export default function Logo() {
       (gltf) => {
         const model = gltf.scene
 
-        // Ultra-optimized material for mobile
         const material = new THREE.MeshBasicMaterial({
           color: 0xF8C46F,
           wireframe: true,
@@ -199,7 +191,6 @@ export default function Logo() {
           opacity: 1,
         })
 
-        // If mobile, use even simpler material
         if (isMobile.current) {
           material.transparent = false
           material.opacity = 1
@@ -227,11 +218,14 @@ export default function Logo() {
         pivot.add(model)
         scene.add(pivot)
         pivotRef.current = pivot
+        
+        // Set model loaded state
+        setModelLoaded(true)
       },
       undefined,
       (error) => {
         console.error('Model load error:', error)
-        // Don't set webglSupported to false here, as the model loading is separate
+        setWebglSupported(false)
       }
     )
 
@@ -272,7 +266,6 @@ export default function Logo() {
       }
     }
 
-    // Attach mouse events to canvas only
     if (!isMobile.current && currentMountRef) {
       currentMountRef.addEventListener('mousemove', handleMouseMove, { passive: true })
       currentMountRef.addEventListener('mouseleave', handleMouseLeave, { passive: true })
@@ -311,12 +304,14 @@ export default function Logo() {
 
   // Fallback UI for when WebGL is not supported or available
   const FallbackLogo = () => (
-    <div className="w-full h-80 md:h-96 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-      <img 
+    <div className="w-full h-80 md:h-96 rounded-2xl overflow-hidden bg-white flex items-center justify-center">
+      <Image 
         src="/logo.svg" 
         alt="Logo" 
-        className="w-32 h-32 md:w-40 md:h-40 opacity-80"
-        style={{ filter: 'sepia(1) saturate(2) hue-rotate(25deg) brightness(1.1)' }}
+        width={128}
+        height={128}
+        priority
+        className="w-32 h-32 md:w-40 md:h-40"
       />
     </div>
   )
@@ -332,10 +327,34 @@ export default function Logo() {
   }
 
   return (
-    <div 
-      ref={mountRef} 
-      className="w-full h-80 md:h-96 rounded-2xl overflow-hidden"
-      style={{ pointerEvents: 'auto' }}
-    />
+    <div className="relative w-full h-80 md:h-96 rounded-2xl overflow-hidden bg-white">
+      {/* 3D Canvas */}
+      <div 
+        ref={mountRef} 
+        className="w-full h-full"
+        style={{ pointerEvents: 'auto' }}
+      />
+      
+      {/* Loading overlay that fades out */}
+      <AnimatePresence>
+        {webglSupported === true && !modelLoaded && (
+          <motion.div
+            className="absolute inset-0 bg-white flex items-center justify-center"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <Image 
+              src="/logo.svg" 
+              alt="Logo" 
+              width={128}
+              height={128}
+              priority
+              className="w-32 h-32 md:w-40 md:h-40"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
