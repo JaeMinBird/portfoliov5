@@ -21,13 +21,13 @@
     "three": "^0.177.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
+    "@eslint/eslintrc": "^3.3.0",
     "@tailwindcss/postcss": "^4.1.10",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "^15",
+    "eslint": "^9.21.0",
+    "eslint-config-next": "^16.1.6",
     "tailwindcss": "^4.1.10",
     "typescript": "^5"
   }
