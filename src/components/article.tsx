@@ -2,16 +2,124 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { ProjectInfo } from '../data/projects';
 import Footer from './footer';
 import StickyHeader from './nav';
+import { useScrollToSection } from '@/hooks/use-scroll-to-section';
+import { COLORS } from '@/lib/constants';
 
-const sections = [
+// ---------------------------------------------------------------------------
+// Article sidebar sections — single source of truth for nav + scroll spy.
+// ---------------------------------------------------------------------------
+
+const SECTIONS = [
   { id: 'overview', label: 'Overview' },
   { id: 'problem', label: 'Problem' },
   { id: 'solution', label: 'Solution' },
-  { id: 'reflection', label: 'Reflection' }
-];
+  { id: 'reflection', label: 'Reflection' },
+] as const;
+
+// ---------------------------------------------------------------------------
+// ArticleSection — DRY component for Problem/Solution/Reflection blocks.
+// Previously these three blocks were copy-pasted with only the title and
+// content field differing.
+// ---------------------------------------------------------------------------
+
+interface ArticleSectionProps {
+  id: string;
+  title: string;
+  content: string;
+  fallback: string;
+  sectionImage?: string;
+  projectTitle: string;
+}
+
+function ArticleSection({
+  id,
+  title,
+  content,
+  fallback,
+  sectionImage,
+  projectTitle,
+}: ArticleSectionProps) {
+  return (
+    <motion.section
+      id={id}
+      className="mb-16 md:mb-24"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+      viewport={{ once: true }}
+    >
+      <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 xl:gap-12">
+        {/* Left — heading + optional image */}
+        <div className="w-full md:w-2/5 lg:w-[35%]">
+          <h2
+            className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 md:mb-0"
+            style={{ color: COLORS.accent }}
+          >
+            {title}
+          </h2>
+
+          {sectionImage && (
+            <div
+              className="w-full aspect-[4/3] rounded-lg overflow-hidden mt-4 flex items-center justify-center relative"
+              style={{ backgroundColor: '#f5f5f5' }}
+            >
+              <Image
+                src={sectionImage}
+                alt={`${projectTitle} ${id} section`}
+                fill
+                sizes="(max-width: 768px) 90vw, 35vw"
+                className="rounded-lg object-contain p-[7.5%]"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Right — body text */}
+        <div className="w-full md:w-3/5 lg:w-[65%] flex items-center">
+          <p className="text-lg sm:text-xl md:text-xl lg:text-2xl leading-relaxed text-black">
+            {content || fallback}
+          </p>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MetadataField — Role / Platform / Stack field (used in mobile grid & desktop list).
+// ---------------------------------------------------------------------------
+
+interface MetadataFieldProps {
+  label: string;
+  value: string;
+  className?: string;
+}
+
+function MetadataField({ label, value, className = '' }: MetadataFieldProps) {
+  return (
+    <>
+      <div className={`text-left ${className}`}>
+        <span
+          className="uppercase tracking-wider font-medium"
+          style={{ color: COLORS.accent }}
+        >
+          [ {label} ]
+        </span>
+      </div>
+      <div className={`text-left ${className}`}>
+        <span className="text-black font-light">{value}</span>
+      </div>
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ProjectArticle (default export)
+// ---------------------------------------------------------------------------
 
 interface ProjectArticleProps {
   project: ProjectInfo;
@@ -19,39 +127,27 @@ interface ProjectArticleProps {
 
 export default function ProjectArticle({ project }: ProjectArticleProps) {
   const [activeSection, setActiveSection] = useState('overview');
+  const scrollToSection = useScrollToSection(100);
 
-  const scrollToSection = (sectionId: string) => {
-    if (sectionId === 'overview') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - 100;
-      window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-    }
-  };
-
+  /** Scroll-spy — highlights the sidebar dot matching the visible section. */
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
       const isMobile = window.innerWidth < 768;
       const offset = isMobile ? 100 : 150;
       const overviewThreshold = isMobile ? 300 : 400;
-      
+
       if (scrollPosition + offset < overviewThreshold) {
         setActiveSection('overview');
         return;
       }
 
-      for (const section of sections.slice(1)) {
+      for (const section of SECTIONS.slice(1)) {
         const element = document.getElementById(section.id);
         if (element) {
           const elementTop = element.offsetTop - offset;
           const elementBottom = elementTop + element.offsetHeight;
-          
+
           if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
             setActiveSection(section.id);
             return;
@@ -61,44 +157,86 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
     };
 
     window.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleScroll); // Re-calculate on resize
+    window.addEventListener('resize', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
   }, []);
 
+  /** Handle sidebar click — overview scrolls to top, others to their section. */
+  const handleSidebarClick = (sectionId: string) => {
+    if (sectionId === 'overview') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      scrollToSection(sectionId);
+    }
+  };
+
+  const metadataFields = [
+    { label: 'ROLE', value: project.role || 'Developer' },
+    { label: 'PLATFORM', value: project.platform || 'Web Application' },
+    { label: 'STACK', value: (project.stack || project.technologies).join(', ') },
+  ];
+
+  /**
+   * The content sections (Problem, Solution, Reflection) that were
+   * previously 3 identical copy-pasted blocks.
+   */
+  const contentSections = [
+    {
+      id: 'problem',
+      title: 'PROBLEM',
+      content: project.problem,
+      fallback: 'Problem description not available for this project.',
+      image: project.sectionImages?.problem,
+    },
+    {
+      id: 'solution',
+      title: 'SOLUTION',
+      content: project.solution,
+      fallback: 'Solution description not available for this project.',
+      image: project.sectionImages?.solution,
+    },
+    {
+      id: 'reflection',
+      title: 'REFLECTION',
+      content: project.reflection,
+      fallback: 'Reflection not available for this project.',
+      image: project.sectionImages?.reflection,
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white">
-      {/* Navigation */}
       <StickyHeader />
-      
-      {/* Navigation Sidebar */}
-      <motion.div 
+
+      {/* ── Sidebar navigation (desktop only) ──────────────────────────── */}
+      <motion.div
         className="fixed left-4 lg:left-8 top-1/2 -translate-y-1/2 z-50 hidden xl:block"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.5 }}
       >
         <div className="flex flex-col gap-6">
-          {sections.map((section) => (
+          {SECTIONS.map((section) => (
             <button
               key={section.id}
-              onClick={() => scrollToSection(section.id)}
-              className={`text-left transition-all duration-200 cursor-pointer ${
-                activeSection === section.id 
-                  ? 'font-medium' 
+              onClick={() => handleSidebarClick(section.id)}
+              className={`text-left transition-all duration-200 cursor-pointer ${activeSection === section.id
+                  ? 'font-medium'
                   : 'text-gray-400 hover:text-gray-600'
-              }`}
-              style={{ 
-                color: activeSection === section.id ? '#F8C46F' : undefined 
-              }}
+                }`}
+              style={{ color: activeSection === section.id ? COLORS.accent : undefined }}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-3 h-3 rounded-full transition-all duration-200`}
-                     style={{ 
-                       backgroundColor: activeSection === section.id ? '#F8C46F' : '#d1d5db' 
-                     }} />
+                <div
+                  className="w-3 h-3 rounded-full transition-all duration-200"
+                  style={{
+                    backgroundColor:
+                      activeSection === section.id ? COLORS.accent : '#d1d5db',
+                  }}
+                />
                 <span className="text-base uppercase tracking-wider">
                   {section.label}
                 </span>
@@ -108,22 +246,24 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
         </div>
       </motion.div>
 
-      {/* Main Content */}
+      {/* ── Main content ───────────────────────────────────────────────── */}
       <div className="w-[90vw] md:w-[70vw] lg:w-[60vw] mx-auto pt-20 md:pt-32 px-4 md:px-0">
-        {/* Hero Image */}
-        <motion.div 
-          className="w-[80vw] md:w-[50vw] lg:w-[40vw] mx-auto aspect-[4/3] rounded-lg overflow-hidden mb-12 md:mb-16 flex items-center justify-center"
+        {/* Hero image */}
+        <motion.div
+          className="w-[80vw] md:w-[50vw] lg:w-[40vw] mx-auto aspect-[4/3] rounded-lg overflow-hidden mb-12 md:mb-16 flex items-center justify-center relative"
           style={{ backgroundColor: '#f5f5f5' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
           {project.heroImage ? (
-            <img 
-              src={project.heroImage} 
+            <Image
+              src={project.heroImage}
               alt={`${project.title} hero image`}
-              className="rounded-lg object-contain"
-              style={{ width: '85%', height: 'auto' }}
+              fill
+              sizes="(max-width: 768px) 80vw, (max-width: 1024px) 50vw, 40vw"
+              className="rounded-lg object-contain p-[7.5%]"
+              priority
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-gray-600 text-2xl font-medium">
@@ -132,227 +272,77 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
           )}
         </motion.div>
 
-        {/* Overview Section */}
-        <motion.section 
-          id="overview" 
+        {/* Overview section */}
+        <motion.section
+          id="overview"
           className="mb-16 md:mb-24"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            {/* Left Side - 80% */}
+            {/* Left — title + description (80%) */}
             <div className="w-full lg:w-4/5">
-              {/* Project Title */}
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-light mb-4 text-black leading-tight text-left">
                 {project.title}
               </h1>
-
-              {/* Concept Sentence */}
               <h2 className="text-3xl md:text-4xl font-light mb-8 lg:mb-12 text-gray-400 leading-tight text-left">
                 {project.conceptSentence || 'A comprehensive solution'}
               </h2>
-
-              {/* Project Description */}
               <p className="text-xl md:text-2xl leading-relaxed text-black max-w-4xl text-left mb-8 lg:mb-0">
                 {project.description}
               </p>
             </div>
 
-            {/* Right Side - 20% */}
+            {/* Right — metadata (20%) */}
             <div className="w-full lg:w-1/5 lg:flex lg:items-center">
-              {/* RPS (Role, Platform, Stack) */}
               <div className="w-full">
                 {/* Mobile: 2-column grid */}
-                <div className="grid gap-x-4 gap-y-3 lg:hidden text-sm" style={{ gridTemplateColumns: '1fr 2fr' }}>
-                  <div className="text-left">
-                    <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
-                      [ ROLE ]
-                    </span>
-                  </div>
-                  <div className="text-left">
-                    <span className="text-black font-light">
-                      {project.role || 'Developer'}
-                    </span>
-                  </div>
-                  
-                  <div className="text-left">
-                    <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
-                      [ PLATFORM ]
-                    </span>
-                  </div>
-                  <div className="text-left">
-                    <span className="text-black font-light">
-                      {project.platform || 'Web Application'}
-                    </span>
-                  </div>
-                  
-                  <div className="text-left">
-                    <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
-                      [ STACK ]
-                    </span>
-                  </div>
-                  <div className="text-left">
-                    <span className="text-black font-light text-sm">
-                      {(project.stack || project.technologies).join(', ')}
-                    </span>
-                  </div>
+                <div
+                  className="grid gap-x-4 gap-y-3 lg:hidden text-sm"
+                  style={{ gridTemplateColumns: '1fr 2fr' }}
+                >
+                  {metadataFields.map((f) => (
+                    <MetadataField key={f.label} {...f} />
+                  ))}
                 </div>
 
-                {/* Desktop: Original vertical layout */}
+                {/* Desktop: vertical stack */}
                 <div className="hidden lg:flex lg:flex-col lg:gap-8 text-base">
-                  <div>
-                    <div className="mb-2">
-                      <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
-                        [ ROLE ]
-                      </span>
+                  {metadataFields.map((f) => (
+                    <div key={f.label}>
+                      <div className="mb-2">
+                        <span
+                          className="uppercase tracking-wider font-medium"
+                          style={{ color: COLORS.accent }}
+                        >
+                          [ {f.label} ]
+                        </span>
+                      </div>
+                      <div className="text-black font-light">{f.value}</div>
                     </div>
-                    <div className="text-black font-light">
-                      {project.role || 'Developer'}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="mb-2">
-                      <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
-                        [ PLATFORM ]
-                      </span>
-                    </div>
-                    <div className="text-black font-light">
-                      {project.platform || 'Web Application'}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="mb-2">
-                      <span className="uppercase tracking-wider font-medium" style={{ color: '#F8C46F' }}>
-                        [ STACK ]
-                      </span>
-                    </div>
-                    <div className="text-black font-light">
-                      {(project.stack || project.technologies).join(', ')}
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
         </motion.section>
 
-        {/* Problem Section */}
-        <motion.section 
-          id="problem" 
-          className="mb-16 md:mb-24"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 xl:gap-12">
-            {/* Left Side - 40% */}
-            <div className="w-full md:w-2/5 lg:w-[35%]">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 md:mb-0" style={{ color: '#F8C46F' }}>
-                PROBLEM
-              </h2>
-              {/* Section Image */}
-              {project.sectionImages?.problem ? (
-                <div className="w-full aspect-[4/3] rounded-lg overflow-hidden mt-4 flex items-center justify-center" style={{ backgroundColor: '#f5f5f5' }}>
-                  <img 
-                    src={project.sectionImages.problem} 
-                    alt={`${project.title} problem section`}
-                    className="rounded-lg object-contain"
-                    style={{ width: '85%', height: 'auto' }}
-                  />
-                </div>
-              ) : null}
-            </div>
-            
-            {/* Right Side - 60% */}
-            <div className="w-full md:w-3/5 lg:w-[65%] flex items-center">
-              <p className="text-lg sm:text-xl md:text-xl lg:text-2xl leading-relaxed text-black">
-                {project.problem || 'Problem description not available for this project.'}
-              </p>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Solution Section */}
-        <motion.section 
-          id="solution" 
-          className="mb-16 md:mb-24"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 xl:gap-12">
-            {/* Left Side - 40% */}
-            <div className="w-full md:w-2/5 lg:w-[35%]">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 md:mb-0" style={{ color: '#F8C46F' }}>
-                SOLUTION
-              </h2>
-              {/* Section Image */}
-              {project.sectionImages?.solution ? (
-                <div className="w-full aspect-[4/3] rounded-lg overflow-hidden mt-4 flex items-center justify-center" style={{ backgroundColor: '#f5f5f5' }}>
-                  <img 
-                    src={project.sectionImages.solution} 
-                    alt={`${project.title} solution section`}
-                    className="rounded-lg object-contain"
-                    style={{ width: '85%', height: 'auto' }}
-                  />
-                </div>
-              ) : null}
-            </div>
-            
-            {/* Right Side - 60% */}
-            <div className="w-full md:w-3/5 lg:w-[65%] flex items-center">
-              <p className="text-lg sm:text-xl md:text-xl lg:text-2xl leading-relaxed text-black">
-                {project.solution || 'Solution description not available for this project.'}
-              </p>
-            </div>
-          </div>
-        </motion.section>
-
-        {/* Reflection Section */}
-        <motion.section 
-          id="reflection" 
-          className="mb-16 md:mb-24"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 xl:gap-12">
-            {/* Left Side - 40% */}
-            <div className="w-full md:w-2/5 lg:w-[35%]">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 md:mb-0" style={{ color: '#F8C46F' }}>
-                REFLECTION
-              </h2>
-              {/* Section Image */}
-              {project.sectionImages?.reflection ? (
-                <div className="w-full aspect-[4/3] rounded-lg overflow-hidden mt-4 flex items-center justify-center" style={{ backgroundColor: '#f5f5f5' }}>
-                  <img 
-                    src={project.sectionImages.reflection} 
-                    alt={`${project.title} reflection section`}
-                    className="rounded-lg object-contain"
-                    style={{ width: '85%', height: 'auto' }}
-                  />
-                </div>
-              ) : null}
-            </div>
-            
-            {/* Right Side - 60% */}
-            <div className="w-full md:w-3/5 lg:w-[65%] flex items-center">
-              <p className="text-lg sm:text-xl md:text-xl lg:text-2xl leading-relaxed text-black">
-                {project.reflection || 'Reflection not available for this project.'}
-              </p>
-            </div>
-          </div>
-        </motion.section>
+        {/* Content sections (Problem / Solution / Reflection) */}
+        {contentSections.map((section) => (
+          <ArticleSection
+            key={section.id}
+            id={section.id}
+            title={section.title}
+            content={section.content || ''}
+            fallback={section.fallback}
+            sectionImage={section.image}
+            projectTitle={project.title}
+          />
+        ))}
       </div>
 
-      {/* Footer */}
       <Footer width="60vw" />
     </div>
   );
-} 
+}

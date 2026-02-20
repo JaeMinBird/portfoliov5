@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { COLORS } from '@/lib/constants';
 
 export default function NotFound() {
   return (
@@ -18,20 +19,13 @@ export default function NotFound() {
           className="w-[60px] h-[60px] cursor-pointer"
           whileHover={{ rotate: 218 }}
           transition={{ duration: 0.5 }}
-          onClick={() => {
-            window.location.href = '/';
-          }}
+          onClick={() => { window.location.href = '/'; }}
         >
-          <Image 
-            src="/logo.svg" 
-            alt="Logo" 
-            width={60} 
-            height={60}
-          />
+          <Image src="/logo.svg" alt="Logo" width={60} height={60} />
         </motion.div>
       </motion.div>
 
-      {/* 404 Text */}
+      {/* 404 message */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -49,34 +43,34 @@ export default function NotFound() {
         </p>
       </motion.div>
 
-      {/* Back Home Button */}
+      {/* CTA */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
       >
-        <Link 
+        <Link
           href="/"
-          className="inline-block px-8 py-3 text-lg font-bold border rounded-full transition-all duration-300"
-          style={{ 
-            color: '#F8C46F',
-            borderColor: '#F8C46F',
-            borderWidth: '1px'
+          className="inline-block px-8 py-3 text-lg font-bold border rounded-full transition-all duration-300 hover:text-white"
+          style={{
+            color: COLORS.accent,
+            borderColor: COLORS.accent,
+            borderWidth: '1px',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#F8C46F';
+            e.currentTarget.style.backgroundColor = COLORS.accent;
             e.currentTarget.style.color = 'white';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = '#F8C46F';
+            e.currentTarget.style.color = COLORS.accent;
           }}
         >
           back home
         </Link>
       </motion.div>
 
-      {/* Optional: Add some decorative elements that match your site */}
+      {/* Bottom hint */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

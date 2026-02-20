@@ -4,6 +4,45 @@ import React, { useRef, useEffect, useCallback, useState } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import Image from 'next/image'
+import { COLORS, BREAKPOINTS } from '@/lib/constants'
+
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
+
+/** Camera field-of-view and positioning. */
+const CAMERA_FOV = 75;
+const CAMERA_Z = 3.5;
+
+/** Scales the loaded GLTF model to fit uniformly in the viewport. */
+const MODEL_TARGET_SIZE = 3.5;
+
+/** Desktop: mouse-follow rotation sensitivity (radians per unit). */
+const MOUSE_SENSITIVITY_Y = 1;
+const MOUSE_SENSITIVITY_X = 0.4;
+
+/** Desktop: interpolation speed for mouse-follow rotation (0–1). */
+const MOUSE_LERP_FACTOR = 0.08;
+
+/** Mobile: amplitude and speed of the idle oscillation. */
+const MOBILE_OSCILLATION_SPEED = 0.8;
+const MOBILE_OSCILLATION_Y = 0.3;
+const MOBILE_OSCILLATION_X = 0.2;
+
+// ---------------------------------------------------------------------------
+// ThreeJSLogo (default export)
+//
+// Renders a wireframe 3D logo loaded from `/logo.glb`.
+//
+// Desktop: the model follows the cursor via smooth linear interpolation.
+// Mobile:  the model gently oscillates using sine/cosine functions.
+//
+// Performance optimisations:
+//   - Frame-rate capped to 30fps on mobile, 60fps on desktop.
+//   - Rendering pauses entirely when the component scrolls out of view
+//     (tracked via IntersectionObserver).
+//   - Pixel ratio capped at 2 to avoid unnecessary GPU load on Retina.
+// ---------------------------------------------------------------------------
 
 export default function ThreeJSLogo() {
   const mountRef = useRef<HTMLDivElement>(null)
@@ -12,99 +51,91 @@ export default function ThreeJSLogo() {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
   const pivotRef = useRef<THREE.Group | null>(null)
   const frameId = useRef<number | null>(null)
-  const mousePosition = useRef({ x: 0, y: 0 })
   const targetRotation = useRef({ x: 0, y: 0 })
-  const isMobile = useRef(false)
+  const isMobileRef = useRef(false)
   const mobileTime = useRef(0)
-  const isVisible = useRef(true)
-  
+  const isVisibleRef = useRef(true)
+
   const [modelLoaded, setModelLoaded] = useState(false)
 
+  // ── Mouse handlers (desktop only) ──────────────────────────────────────
+
   const handleMouseMove = useCallback((event: MouseEvent) => {
-    if (isMobile.current || !mountRef.current) return
-    
+    if (isMobileRef.current || !mountRef.current) return
+
     const rect = mountRef.current.getBoundingClientRect()
-    
     const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
     const y = -((event.clientY - rect.top) / rect.height) * 2 + 1
-    
-    mousePosition.current = { x, y }
-    targetRotation.current.y = x * 1
-    targetRotation.current.x = -y * 0.4
+
+    targetRotation.current.y = x * MOUSE_SENSITIVITY_Y
+    targetRotation.current.x = -y * MOUSE_SENSITIVITY_X
   }, [])
 
   const handleMouseLeave = useCallback(() => {
-    if (isMobile.current) return
-    
-    targetRotation.current.y = 0
-    targetRotation.current.x = 0
+    if (isMobileRef.current) return
+    targetRotation.current = { x: 0, y: 0 }
   }, [])
+
+  // ── Resize handler ─────────────────────────────────────────────────────
 
   const handleResize = useCallback(() => {
-    if (cameraRef.current && rendererRef.current && mountRef.current) {
-      const newIsMobile = window.innerWidth <= 768
-      
-      if (isMobile.current !== newIsMobile) {
-        isMobile.current = newIsMobile
-      }
-      
-      const width = mountRef.current.clientWidth
-      const height = mountRef.current.clientHeight
-      
-      cameraRef.current.aspect = width / height
-      cameraRef.current.updateProjectionMatrix()
-      rendererRef.current.setSize(width, height)
-    }
+    if (!cameraRef.current || !rendererRef.current || !mountRef.current) return
+
+    isMobileRef.current = window.innerWidth <= BREAKPOINTS.md
+
+    const { clientWidth: w, clientHeight: h } = mountRef.current
+    cameraRef.current.aspect = w / h
+    cameraRef.current.updateProjectionMatrix()
+    rendererRef.current.setSize(w, h)
   }, [])
 
-  // Intersection Observer for performance
+  // ── Visibility observer (pauses rendering when off-screen) ─────────────
+
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        isVisible.current = entry.isIntersecting
-      },
-      { threshold: 0.1 }
+      ([entry]) => { isVisibleRef.current = entry.isIntersecting },
+      { threshold: 0.1 },
     )
 
-    const currentElement = mountRef.current
-    if (currentElement) {
-      observer.observe(currentElement)
-    }
+    const el = mountRef.current
+    if (el) observer.observe(el)
 
     return () => {
-      if (currentElement) {
-        observer.unobserve(currentElement)
-      }
+      if (el) observer.unobserve(el)
       observer.disconnect()
     }
   }, [])
 
+  // ── Scene setup & animation loop ───────────────────────────────────────
+
   useEffect(() => {
-    const currentMountRef = mountRef.current
-    if (!currentMountRef) return
+    const mount = mountRef.current
+    if (!mount) return
 
-    isMobile.current = window.innerWidth <= 768
+    const mobile = window.innerWidth <= BREAKPOINTS.md
+    isMobileRef.current = mobile
 
+    // --- Scene & camera ---
     const scene = new THREE.Scene()
     sceneRef.current = scene
 
     const camera = new THREE.PerspectiveCamera(
-      75,
-      currentMountRef.clientWidth / currentMountRef.clientHeight,
+      CAMERA_FOV,
+      mount.clientWidth / mount.clientHeight,
       0.1,
-      1000
+      1000,
     )
-    camera.position.set(0, 0, 3.5)
+    camera.position.set(0, 0, CAMERA_Z)
     camera.lookAt(0, 0, 0)
     cameraRef.current = camera
 
-    // Enhanced WebGL renderer creation with better error handling
+    // --- Renderer ---
     let renderer: THREE.WebGLRenderer
     try {
-      renderer = new THREE.WebGLRenderer({ 
-        antialias: !isMobile.current,
+      renderer = new THREE.WebGLRenderer({
+        antialias: !mobile,
         alpha: true,
-        powerPreference: isMobile.current ? "default" : "high-performance",
+        powerPreference: mobile ? 'default' : 'high-performance',
         stencil: false,
         depth: false,
         preserveDrawingBuffer: false,
@@ -114,32 +145,32 @@ export default function ThreeJSLogo() {
       console.warn('WebGL renderer creation failed:', error)
       return
     }
-    
-    const pixelRatio = isMobile.current ? 1 : Math.min(window.devicePixelRatio, 2)
-    renderer.setPixelRatio(pixelRatio)
-    
+
+    renderer.setPixelRatio(mobile ? 1 : Math.min(window.devicePixelRatio, 2))
+
     try {
-      renderer.setSize(currentMountRef.clientWidth, currentMountRef.clientHeight)
-      renderer.setClearColor(0x000000, 0) // Keep transparent background
+      renderer.setSize(mount.clientWidth, mount.clientHeight)
+      renderer.setClearColor(0x000000, 0) // transparent background
     } catch (error) {
       console.warn('WebGL renderer setup failed:', error)
       renderer.dispose()
       return
     }
-    
+
     renderer.shadowMap.enabled = false
     rendererRef.current = renderer
-    currentMountRef.appendChild(renderer.domElement)
+    mount.appendChild(renderer.domElement)
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, isMobile.current ? 0.8 : 0.6)
-    scene.add(ambientLight)
+    // --- Lighting ---
+    scene.add(new THREE.AmbientLight(0xffffff, mobile ? 0.8 : 0.6))
 
-    if (!isMobile.current) {
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8)
-      directionalLight.position.set(1, 1, 2)
-      scene.add(directionalLight)
+    if (!mobile) {
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8)
+      dirLight.position.set(1, 1, 2)
+      scene.add(dirLight)
     }
 
+    // --- Model loading ---
     const loader = new GLTFLoader()
     loader.load(
       '/logo.glb',
@@ -147,16 +178,9 @@ export default function ThreeJSLogo() {
         const model = gltf.scene
 
         const material = new THREE.MeshBasicMaterial({
-          color: 0xF8C46F,
+          color: parseInt(COLORS.accent.replace('#', ''), 16),
           wireframe: true,
-          transparent: false,
-          opacity: 1,
         })
-
-        if (isMobile.current) {
-          material.transparent = false
-          material.opacity = 1
-        }
 
         model.traverse((child) => {
           if (child instanceof THREE.Mesh) {
@@ -167,53 +191,51 @@ export default function ThreeJSLogo() {
           }
         })
 
+        // Centre and normalise scale so the model fills the viewport.
         const box = new THREE.Box3().setFromObject(model)
         const center = box.getCenter(new THREE.Vector3())
         const size = box.getSize(new THREE.Vector3())
         model.position.sub(center)
 
         const maxDim = Math.max(size.x, size.y, size.z)
-        const scale = 3.5 / maxDim
-        model.scale.setScalar(scale)
+        model.scale.setScalar(MODEL_TARGET_SIZE / maxDim)
 
         const pivot = new THREE.Group()
         pivot.add(model)
         scene.add(pivot)
         pivotRef.current = pivot
-        
-        // Set model loaded state - this will trigger the instant swap
+
         setModelLoaded(true)
       },
       undefined,
-      (error) => {
-        console.error('Model load error:', error)
-      }
+      (error) => console.error('Model load error:', error),
     )
 
+    // --- Animation loop (frame-rate capped) ---
     let lastTime = 0
-    const targetFPS = isMobile.current ? 30 : 60
-    const frameInterval = 1000 / targetFPS
+    const frameInterval = 1000 / (mobile ? 30 : 60)
 
     const animate = (currentTime: number) => {
       frameId.current = requestAnimationFrame(animate)
 
-      if (!isVisible.current) return
-
+      // Skip rendering when off-screen or under frame-budget.
+      if (!isVisibleRef.current) return
       if (currentTime - lastTime < frameInterval) return
       lastTime = currentTime
 
       if (pivotRef.current) {
-        if (isMobile.current) {
+        if (isMobileRef.current) {
+          // Idle oscillation on mobile.
           mobileTime.current += 0.016
-          
-          const time = mobileTime.current * 0.8
-          pivotRef.current.rotation.y = Math.sin(time) * 0.3
-          pivotRef.current.rotation.x = Math.cos(time * 0.7) * 0.2
+          const t = mobileTime.current * MOBILE_OSCILLATION_SPEED
+          pivotRef.current.rotation.y = Math.sin(t) * MOBILE_OSCILLATION_Y
+          pivotRef.current.rotation.x = Math.cos(t * 0.7) * MOBILE_OSCILLATION_X
         } else {
-          const lerpFactor = 0.08
-          
-          pivotRef.current.rotation.y += (targetRotation.current.y - pivotRef.current.rotation.y) * lerpFactor
-          pivotRef.current.rotation.x += (targetRotation.current.x - pivotRef.current.rotation.x) * lerpFactor
+          // Mouse-follow with linear interpolation on desktop.
+          pivotRef.current.rotation.y +=
+            (targetRotation.current.y - pivotRef.current.rotation.y) * MOUSE_LERP_FACTOR
+          pivotRef.current.rotation.x +=
+            (targetRotation.current.x - pivotRef.current.rotation.x) * MOUSE_LERP_FACTOR
         }
       }
 
@@ -226,50 +248,51 @@ export default function ThreeJSLogo() {
       }
     }
 
-    if (!isMobile.current && currentMountRef) {
-      currentMountRef.addEventListener('mousemove', handleMouseMove, { passive: true })
-      currentMountRef.addEventListener('mouseleave', handleMouseLeave, { passive: true })
+    // --- Event listeners ---
+    if (!mobile && mount) {
+      mount.addEventListener('mousemove', handleMouseMove, { passive: true })
+      mount.addEventListener('mouseleave', handleMouseLeave, { passive: true })
     }
     window.addEventListener('resize', handleResize, { passive: true })
     animate(0)
 
+    // --- Cleanup ---
     return () => {
       if (frameId.current) cancelAnimationFrame(frameId.current)
-      
-      if (!isMobile.current && currentMountRef) {
-        currentMountRef.removeEventListener('mousemove', handleMouseMove)
-        currentMountRef.removeEventListener('mouseleave', handleMouseLeave)
+
+      if (!isMobileRef.current && mount) {
+        mount.removeEventListener('mousemove', handleMouseMove)
+        mount.removeEventListener('mouseleave', handleMouseLeave)
       }
       window.removeEventListener('resize', handleResize)
-      
-      if (currentMountRef && rendererRef.current?.domElement) {
-        currentMountRef.removeChild(rendererRef.current.domElement)
+
+      if (mount && rendererRef.current?.domElement) {
+        mount.removeChild(rendererRef.current.domElement)
       }
       rendererRef.current?.dispose()
-      
-      if (sceneRef.current) {
-        sceneRef.current.traverse((object) => {
-          if (object instanceof THREE.Mesh) {
-            object.geometry?.dispose()
-            if (Array.isArray(object.material)) {
-              object.material.forEach(material => material.dispose())
-            } else {
-              object.material?.dispose()
-            }
+
+      // Dispose all geometries and materials to prevent GPU memory leaks.
+      sceneRef.current?.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry?.dispose()
+          if (Array.isArray(object.material)) {
+            object.material.forEach(m => m.dispose())
+          } else {
+            object.material?.dispose()
           }
-        })
-      }
+        }
+      })
     }
   }, [handleMouseMove, handleMouseLeave, handleResize])
 
   return (
     <>
-      {/* Show placeholder until 3D model is loaded, then instant swap */}
+      {/* Static SVG placeholder — shown until the 3D model is ready. */}
       {!modelLoaded && (
         <div className="absolute inset-0 bg-white flex items-center justify-center">
-          <Image 
-            src="/logo.svg" 
-            alt="Logo" 
+          <Image
+            src="/logo.svg"
+            alt="Logo"
             width={128}
             height={128}
             priority
@@ -278,10 +301,10 @@ export default function ThreeJSLogo() {
           />
         </div>
       )}
-      
-      {/* 3D Canvas - only visible when model is loaded */}
-      <div 
-        ref={mountRef} 
+
+      {/* Three.js canvas */}
+      <div
+        ref={mountRef}
         className="w-full h-full"
         style={{ pointerEvents: 'auto' }}
       />

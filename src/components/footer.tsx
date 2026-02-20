@@ -1,8 +1,41 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
+import { COLORS, LINKS } from '@/lib/constants';
+
+// ---------------------------------------------------------------------------
+// FooterLink — slide-up hover link. Previously copy-pasted 4×.
+// ---------------------------------------------------------------------------
+
+interface FooterLinkProps {
+  href: string;
+  label: string;
+  external?: boolean;
+}
+
+function FooterLink({ href, label, external }: FooterLinkProps) {
+  return (
+    <div className="overflow-hidden leading-none mb-2 sm:mb-0" style={{ height: '1.25rem' }}>
+      <motion.a
+        href={href}
+        className="text-lg md:text-xl font-medium flex flex-col leading-none"
+        whileHover={{ y: '-1.25rem' }}
+        transition={{ duration: 0.2 }}
+        {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+      >
+        <span>{label}</span>
+        <span>{label}</span>
+      </motion.a>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Footer (default export)
+// ---------------------------------------------------------------------------
 
 interface FooterProps {
   className?: string;
@@ -11,30 +44,21 @@ interface FooterProps {
 
 export default function Footer({ className = '', width = '80vw' }: FooterProps) {
   const currentYear = new Date().getFullYear();
-  const [footerWidth, setFooterWidth] = useState('100%');
+  const { isMobile } = useBreakpoint();
+  const footerWidth = isMobile ? '100%' : width;
 
-  useEffect(() => {
-    const updateWidth = () => {
-      if (window.innerWidth >= 768) {
-        setFooterWidth(width);
-      } else {
-        setFooterWidth('100%');
-      }
-    };
-
-    updateWidth();
-    window.addEventListener('resize', updateWidth);
-    return () => window.removeEventListener('resize', updateWidth);
-  }, [width]);
+  const socialLinks: FooterLinkProps[] = [
+    { href: LINKS.email, label: 'Email' },
+    { href: LINKS.linkedin, label: 'LinkedIn', external: true },
+    { href: LINKS.github, label: 'GitHub', external: true },
+    { href: LINKS.resume, label: 'Resume', external: true },
+  ];
 
   return (
     <div className="w-full px-6 md:px-0">
-      <footer 
+      <footer
         className={`flex flex-col justify-between px-8 md:px-12 pt-4 md:pt-6 pb-0 relative overflow-hidden rounded-t-2xl md:mx-auto ${className}`}
-        style={{ 
-          backgroundColor: '#F8C46F',
-          width: footerWidth
-        }}
+        style={{ backgroundColor: COLORS.accent, width: footerWidth }}
       >
         <div className="relative z-10 flex flex-col w-full h-full">
           {/* Call to action */}
@@ -47,63 +71,16 @@ export default function Footer({ className = '', width = '80vw' }: FooterProps) 
             </h3>
           </div>
 
-          {/* Socials */}
+          {/* Social links */}
           <div className="w-full mb-8 md:mb-12">
             <div className="flex flex-col sm:flex-row xl:flex-row gap-2 sm:gap-4 xl:gap-8 text-white">
-              <div className="overflow-hidden leading-none mb-2 sm:mb-0" style={{ height: '1.25rem' }}>
-                <motion.a 
-                  href="mailto:jaeminbird@gmail.com" 
-                  className="text-lg md:text-xl font-medium flex flex-col leading-none"
-                  whileHover={{ y: '-1.25rem' }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <span>Email</span>
-                  <span>Email</span>
-                </motion.a>
-              </div>
-              <div className="overflow-hidden leading-none mb-2 sm:mb-0" style={{ height: '1.25rem' }}>
-                <motion.a 
-                  href="https://www.linkedin.com/in/jaeminbirdsall/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-lg md:text-xl font-medium flex flex-col leading-none"
-                  whileHover={{ y: '-1.25rem' }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <span>LinkedIn</span>
-                  <span>LinkedIn</span>
-                </motion.a>
-              </div>
-              <div className="overflow-hidden leading-none mb-2 sm:mb-0" style={{ height: '1.25rem' }}>
-                <motion.a 
-                  href="https://github.com/JaeMinBird" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-lg md:text-xl font-medium flex flex-col leading-none"
-                  whileHover={{ y: '-1.25rem' }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <span>GitHub</span>
-                  <span>GitHub</span>
-                </motion.a>
-              </div>
-              <div className="overflow-hidden leading-none mb-2 sm:mb-0" style={{ height: '1.25rem' }}>
-                <motion.a 
-                  href="/documents/RESUME.pdf" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-lg md:text-xl font-medium flex flex-col leading-none"
-                  whileHover={{ y: '-1.25rem' }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <span>Resume</span>
-                  <span>Resume</span>
-                </motion.a>
-              </div>
+              {socialLinks.map((link) => (
+                <FooterLink key={link.label} {...link} />
+              ))}
             </div>
           </div>
 
-          {/* Logo positioned on the right side, cut in half */}
+          {/* Decorative logo — clipped to right edge */}
           <div className="absolute top-1/2 -translate-y-1/2 -right-34 md:-right-44 lg:-right-44 pointer-events-none">
             <Image
               src="/logo.svg"

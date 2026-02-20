@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     "JaeMin Birdsall",
     "Jae Birdsall",
     "Machine Learning Engineer",
-    "Full Stack Developer", 
+    "Full Stack Developer",
     "AI Developer",
     "Computer Vision",
     "React Developer",
@@ -57,20 +57,20 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://jaebirdsall.com"), // Replace with your actual domain
+  metadataBase: new URL("https://jaebirdsall.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://jaebirdsall.com", // Replace with your actual domain
+    url: "https://jaebirdsall.com",
     title: "Jae Birdsall - Developer",
     description: "Jae Birdsall is a Machine Learning Engineer and Full Stack Developer specializing in AI/ML systems, computer vision, and modern web applications.",
     siteName: "Jae Birdsall Portfolio",
     images: [
       {
-        url: "/og-image.png", // You'll need to create this
+        url: "/og-image.png",
         width: 1200,
         height: 630,
         alt: "Jae Birdsall - Developer",
@@ -81,8 +81,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Jae Birdsall - Developer",
     description: "Machine Learning Engineer and Full Stack Developer specializing in AI/ML systems, computer vision, and modern web applications.",
-    images: ["/og-image.png"], // Same image as OpenGraph
-    creator: "@yourtwitterhandle", // Replace with your Twitter handle if you have one
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -94,11 +93,6 @@ export const metadata: Metadata = {
       "max-image-preview": "large",
       "max-snippet": -1,
     },
-  },
-  verification: {
-    // Add these if you have them
-    // google: "your-google-verification-code",
-    // bing: "your-bing-verification-code",
   },
 };
 
