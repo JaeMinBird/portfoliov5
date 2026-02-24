@@ -10,34 +10,26 @@ export interface JobInfo {
 export const jobData: JobInfo[] = [
   {
     id: 1,
-    company: "HTI Lab",
-    title: "ML Research Assistant",
-    startDate: "May 2025",
+    company: "West Shore Home",
+    title: "Applied AI Intern",
+    startDate: "Jan 2026",
     endDate: "Present",
-    description: "Train and deploy machine learning computer vision models for traffic analysis. Compile and present technical documentation."
+    description: "AI Applications in Business Analysis"
   },
   {
     id: 2,
-    company: "JiaYou Tennis",
-    title: "Software Engineer",
-    startDate: "Apr 2025",
-    endDate: "Present",
-    description: "Developed augmented reality tennis applications with OpenGL. Managed and led an agile development team."
+    company: "HTI Lab",
+    title: "ML Research Assistant",
+    startDate: "May 2025",
+    endDate: "Dec 2025",
+    description: "LLMs in Autonomous Driving"
   },
   {
     id: 3,
-    company: "Albany Accounting & Tax",
-    title: "WebDev Intern",
-    startDate: "May 2024",
-    endDate: "Aug 2024",
-    description: "Built secure client service platform with encrypted file management. Designed comprehensive UI/UX prototypes."
-  },
-  {
-    id: 4,
-    company: "Mindburn Solutions",
-    title: "Support Technician",
-    startDate: "Jul 2021",
-    endDate: "Aug 2023",
-    description: "Supported enterprise disaster recovery operations for multiple clients. Developed visual report system for SQL database."
+    company: "JiaYou Tennis",
+    title: "Software Engineer Intern",
+    startDate: "Apr 2025",
+    endDate: "Aug 2025",
+    description: "Computer Vision & Agile Team Management"
   }
 ];
