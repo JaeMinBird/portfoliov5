@@ -29,6 +29,16 @@ const MOBILE_OSCILLATION_SPEED = 0.8;
 const MOBILE_OSCILLATION_Y = 0.3;
 const MOBILE_OSCILLATION_X = 0.2;
 
+/** Mobile tap: how long the logo stays aimed at the tap position (ms). */
+const TAP_HOLD_DURATION = 200;
+/** Mobile tap: how quickly the logo blends back to idle after the hold (0–1 per frame). */
+const TAP_BLEND_BACK_SPEED = 0.02;
+/** Mobile tap: how quickly the logo drifts toward the tap target (0–1 per frame). */
+const TAP_SNAP_SPEED = 0.03;
+/** Mobile tap: rotation sensitivity — barely perceptible nudge. */
+const TAP_SENSITIVITY_Y = 0.03;
+const TAP_SENSITIVITY_X = 0.015;
+
 // ---------------------------------------------------------------------------
 // ThreeJSLogo (default export)
 //
@@ -56,6 +66,12 @@ export default function ThreeJSLogo() {
   const mobileTime = useRef(0)
   const isVisibleRef = useRef(true)
 
+  // Mobile tap state
+  const tapTarget = useRef({ x: 0, y: 0 })
+  const tapBlend = useRef(0)          // 1 = fully aimed at tap, 0 = fully idle
+  const tapHoldUntil = useRef(0)      // timestamp when the hold phase ends
+  const isTapActive = useRef(false)   // whether a tap interaction is in progress
+
   const [modelLoaded, setModelLoaded] = useState(false)
 
   // ── Mouse handlers (desktop only) ──────────────────────────────────────
@@ -74,6 +90,24 @@ export default function ThreeJSLogo() {
   const handleMouseLeave = useCallback(() => {
     if (isMobileRef.current) return
     targetRotation.current = { x: 0, y: 0 }
+  }, [])
+
+  // ── Touch handler (mobile only) ────────────────────────────────────────
+
+  const handleTouchStart = useCallback((event: TouchEvent) => {
+    if (!isMobileRef.current || !mountRef.current) return
+
+    const touch = event.touches[0]
+    if (!touch) return
+
+    const rect = mountRef.current.getBoundingClientRect()
+    const x = ((touch.clientX - rect.left) / rect.width) * 2 - 1
+    const y = -((touch.clientY - rect.top) / rect.height) * 2 + 1
+
+    tapTarget.current.y = x * TAP_SENSITIVITY_Y
+    tapTarget.current.x = -y * TAP_SENSITIVITY_X
+    isTapActive.current = true
+    tapHoldUntil.current = performance.now() + TAP_HOLD_DURATION
   }, [])
 
   // ── Resize handler ─────────────────────────────────────────────────────
@@ -228,8 +262,26 @@ export default function ThreeJSLogo() {
           // Idle oscillation on mobile.
           mobileTime.current += 0.016
           const t = mobileTime.current * MOBILE_OSCILLATION_SPEED
-          pivotRef.current.rotation.y = Math.sin(t) * MOBILE_OSCILLATION_Y
-          pivotRef.current.rotation.x = Math.cos(t * 0.7) * MOBILE_OSCILLATION_X
+          const idleY = Math.sin(t) * MOBILE_OSCILLATION_Y
+          const idleX = Math.cos(t * 0.7) * MOBILE_OSCILLATION_X
+
+          // ── Tap interaction blending ──
+          if (isTapActive.current) {
+            if (currentTime < tapHoldUntil.current) {
+              // Hold phase: snap toward the tap target.
+              tapBlend.current = Math.min(tapBlend.current + TAP_SNAP_SPEED, 1)
+            } else {
+              // Blend-back phase: ease back to idle.
+              tapBlend.current = Math.max(tapBlend.current - TAP_BLEND_BACK_SPEED, 0)
+              if (tapBlend.current <= 0) {
+                isTapActive.current = false
+              }
+            }
+          }
+
+          const b = tapBlend.current
+          pivotRef.current.rotation.y = idleY * (1 - b) + tapTarget.current.y * b
+          pivotRef.current.rotation.x = idleX * (1 - b) + tapTarget.current.x * b
         } else {
           // Mouse-follow with linear interpolation on desktop.
           pivotRef.current.rotation.y +=
@@ -249,6 +301,9 @@ export default function ThreeJSLogo() {
     }
 
     // --- Event listeners ---
+    if (mobile && mount) {
+      mount.addEventListener('touchstart', handleTouchStart, { passive: true })
+    }
     if (!mobile && mount) {
       mount.addEventListener('mousemove', handleMouseMove, { passive: true })
       mount.addEventListener('mouseleave', handleMouseLeave, { passive: true })
@@ -260,6 +315,9 @@ export default function ThreeJSLogo() {
     return () => {
       if (frameId.current) cancelAnimationFrame(frameId.current)
 
+      if (isMobileRef.current && mount) {
+        mount.removeEventListener('touchstart', handleTouchStart)
+      }
       if (!isMobileRef.current && mount) {
         mount.removeEventListener('mousemove', handleMouseMove)
         mount.removeEventListener('mouseleave', handleMouseLeave)
@@ -283,7 +341,7 @@ export default function ThreeJSLogo() {
         }
       })
     }
-  }, [handleMouseMove, handleMouseLeave, handleResize])
+  }, [handleMouseMove, handleMouseLeave, handleTouchStart, handleResize])
 
   return (
     <>
