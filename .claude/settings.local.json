@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "Bash(echo bun not found:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(export:*)",
+      "Bash(cat:*)"
+    ]
+  }
+}

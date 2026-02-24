@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence, Transition } from "framer-motion";
 import Image from "next/image";
 import { IconBrandLinkedinFilled, IconBrandGithubFilled } from '@tabler/icons-react';
@@ -151,8 +151,6 @@ export default function StickyHeader() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { isMobile } = useBreakpoint();
   const scrollToSection = useScrollToSection(100);
-  const previousIsMobileRef = useRef(false);
-
   // Track scroll position to toggle header background.
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -162,11 +160,14 @@ export default function StickyHeader() {
 
   // Close mobile menu when resizing to desktop.
   useEffect(() => {
-    if (!isMobile && previousIsMobileRef.current && mobileNavOpen) {
-      setMobileNavOpen(false);
-    }
-    previousIsMobileRef.current = isMobile;
-  }, [isMobile, mobileNavOpen]);
+    const onResize = () => {
+      if (window.innerWidth >= 768) {
+        setMobileNavOpen(false);
+      }
+    };
+    window.addEventListener('resize', onResize, { passive: true });
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // Lock body scroll while the mobile overlay is open.
   useEffect(() => {
