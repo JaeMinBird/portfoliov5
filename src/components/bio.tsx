@@ -1,36 +1,80 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { COLORS, LINKS } from '@/lib/constants';
+import { COLORS } from '@/lib/constants';
 
 // ---------------------------------------------------------------------------
-// HobbyTooltip — interactive inline text with a hover/focus tooltip.
-// Extracted from the 6 near-identical copies (3 hobbies × 2 layouts).
+// SlotMachine — cycles through tasks with a slot machine letter effect
 // ---------------------------------------------------------------------------
 
-interface HobbyTooltipProps {
-  label: string;
-  tooltip: string;
-}
+const TASKS = ['AI', 'Research', 'Tennis', 'UI/UX'];
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/';
 
-function HobbyTooltip({ label, tooltip }: HobbyTooltipProps) {
-  const [hovered, setHovered] = useState(false);
+function SlotMachine() {
+  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
+  const [displayText, setDisplayText] = useState(TASKS[0]);
+  const [isScrambling, setIsScrambling] = useState(false);
+
+  const scrambleToTask = useCallback((targetTask: string) => {
+    setIsScrambling(true);
+    const maxLength = Math.max(displayText.length, targetTask.length);
+    let iteration = 0;
+    const totalIterations = 12;
+
+    const interval = setInterval(() => {
+      iteration++;
+      
+      // Generate scrambled text
+      const progress = iteration / totalIterations;
+      const lockedChars = Math.floor(progress * targetTask.length);
+      
+      let newText = '';
+      for (let i = 0; i < maxLength; i++) {
+        if (i < lockedChars) {
+          // This character is "locked in"
+          newText += targetTask[i] || '';
+        } else if (i < targetTask.length) {
+          // Still scrambling this position
+          newText += CHARS[Math.floor(Math.random() * CHARS.length)];
+        }
+      }
+      
+      setDisplayText(newText);
+
+      if (iteration >= totalIterations) {
+        clearInterval(interval);
+        setDisplayText(targetTask);
+        setIsScrambling(false);
+      }
+    }, 40);
+
+    return () => clearInterval(interval);
+  }, [displayText.length]);
+
+  useEffect(() => {
+    const cycleInterval = setInterval(() => {
+      if (!isScrambling) {
+        const nextIndex = (currentTaskIndex + 1) % TASKS.length;
+        setCurrentTaskIndex(nextIndex);
+        scrambleToTask(TASKS[nextIndex]);
+      }
+    }, 2000);
+
+    return () => clearInterval(cycleInterval);
+  }, [currentTaskIndex, isScrambling, scrambleToTask]);
 
   return (
     <span
-      className="relative cursor-pointer"
-      style={{ color: COLORS.accent }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="inline-block font-mono"
+      style={{ 
+        color: COLORS.accent,
+        minWidth: '7ch',
+        textAlign: 'center'
+      }}
     >
-      {label}
-      {hovered && (
-        <span className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-sm px-2 py-1 rounded whitespace-nowrap z-50 pointer-events-none block">
-          {tooltip}
-        </span>
-      )}
+      {displayText}
     </span>
   );
 }
@@ -40,25 +84,14 @@ function HobbyTooltip({ label, tooltip }: HobbyTooltipProps) {
 // actual copy is defined in one place.
 // ---------------------------------------------------------------------------
 
-function BioContent({ className = '' }: { className?: string }) {
+function BioContent({ labelClass, taskClass }: { labelClass: string; taskClass: string }) {
   return (
-    <p className={className}>
-      A <span style={{ color: COLORS.pennState }}>Penn State</span> student researching{' '}
-      <span style={{ color: COLORS.coral }}>Computer Assisted Driving</span> at{' '}
-      <a
-        href={LINKS.htiLab}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="transition-opacity duration-300 ease-out hover:opacity-70"
-        style={{ color: COLORS.linkBlue }}
-      >
-        HTI Lab
-      </a>
-      . Solving real problems for real people. Hobbies include{' '}
-      <HobbyTooltip label="cars" tooltip="2017 WRX STI \(`v´)/" />,{' '}
-      <HobbyTooltip label="guitars" tooltip="Ibanez AS53 ( ◡̀_◡́)ᕤ" />, and{' '}
-      <HobbyTooltip label="the arts" tooltip="graphic design is my passion :v" />.
-    </p>
+    <div className="flex flex-col items-center">
+      <p className={labelClass}>i&apos;m doing</p>
+      <p className={taskClass}>
+        <SlotMachine />
+      </p>
+    </div>
   );
 }
 
@@ -138,8 +171,8 @@ export default function Bio() {
                   className="flex justify-center"
                 >
                   <BioContent
-                    className={`text-xl leading-relaxed text-black text-center ${isXs ? 'px-2' : 'px-8'
-                      }`}
+                    labelClass="text-3xl md:text-4xl text-black font-light"
+                    taskClass="text-3xl md:text-4xl font-bold"
                   />
                 </motion.div>
               </div>
@@ -173,7 +206,10 @@ export default function Bio() {
                 viewport={{ once: true }}
                 className="flex justify-center w-full"
               >
-                <BioContent className="text-3xl leading-relaxed text-black text-center" />
+                <BioContent
+                  labelClass="text-4xl xl:text-5xl text-black font-light"
+                  taskClass="text-4xl xl:text-5xl font-bold"
+                />
               </motion.div>
             </div>
           </div>
