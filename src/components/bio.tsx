@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { COLORS } from '@/lib/constants';
+import { COLORS, LINKS } from '@/lib/constants';
 
 // ---------------------------------------------------------------------------
 // SlotMachine — cycles through tasks with a slot machine letter effect
 // ---------------------------------------------------------------------------
 
-const TASKS = ['AI', 'Research', 'Tennis', 'UI/UX'];
+const TASKS = ['AI', 'Research', 'Tennis', 'UI/UX', 'ML', 'WebDev'];
+const RARE_TASK = 'your mom';
+const RARE_CHANCE = 1 / 1000000;
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/';
 
 function SlotMachine() {
@@ -56,9 +58,14 @@ function SlotMachine() {
   useEffect(() => {
     const cycleInterval = setInterval(() => {
       if (!isScrambling) {
-        const nextIndex = (currentTaskIndex + 1) % TASKS.length;
-        setCurrentTaskIndex(nextIndex);
-        scrambleToTask(TASKS[nextIndex]);
+        // 1 in 1 million chance for the rare task
+        if (Math.random() < RARE_CHANCE) {
+          scrambleToTask(RARE_TASK);
+        } else {
+          const nextIndex = (currentTaskIndex + 1) % TASKS.length;
+          setCurrentTaskIndex(nextIndex);
+          scrambleToTask(TASKS[nextIndex]);
+        }
       }
     }, 2000);
 
@@ -84,12 +91,24 @@ function SlotMachine() {
 // actual copy is defined in one place.
 // ---------------------------------------------------------------------------
 
-function BioContent({ labelClass, taskClass }: { labelClass: string; taskClass: string }) {
+function BioContent({ labelClass, taskClass, resumeClass }: { labelClass: string; taskClass: string; resumeClass: string }) {
   return (
     <div className="flex flex-col items-center">
       <p className={labelClass}>i&apos;m doing</p>
       <p className={taskClass}>
         <SlotMachine />
+      </p>
+      <p className={`${resumeClass} mt-8`}>
+        check out my{' '}
+        <a
+          href={LINKS.resume}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline transition-all duration-200"
+          style={{ color: COLORS.accent }}
+        >
+          resume
+        </a>
       </p>
     </div>
   );
@@ -173,6 +192,7 @@ export default function Bio() {
                   <BioContent
                     labelClass="text-3xl md:text-4xl text-black font-light"
                     taskClass="text-3xl md:text-4xl font-bold"
+                    resumeClass="text-lg md:text-xl text-black font-light"
                   />
                 </motion.div>
               </div>
@@ -209,6 +229,7 @@ export default function Bio() {
                 <BioContent
                   labelClass="text-4xl xl:text-5xl text-black font-light"
                   taskClass="text-4xl xl:text-5xl font-bold"
+                  resumeClass="text-xl xl:text-2xl text-black font-light"
                 />
               </motion.div>
             </div>
