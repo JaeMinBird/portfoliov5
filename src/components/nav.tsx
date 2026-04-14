@@ -7,6 +7,8 @@ import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { useScrollToSection } from "@/hooks/use-scroll-to-section";
 import { COLORS, LINKS, SPRING_INTERACTIVE } from "@/lib/constants";
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 // ---------------------------------------------------------------------------
 // MenuButton — animated hamburger ↔ X toggle (SVG).
 // Uses three `<motion.line>` elements that rotate/fade between states.
@@ -288,7 +290,7 @@ export default function StickyHeader() {
               <div className="mb-4">
                 <a href={LINKS.email} className="hover:text-[#F8C46F]">jaeminbird@gmail.com</a>
               </div>
-              <p className="text-xs">© {new Date().getFullYear()} All Rights Reserved</p>
+              <p className="text-xs">© {CURRENT_YEAR} All Rights Reserved</p>
             </motion.div>
           </motion.div>
         )}

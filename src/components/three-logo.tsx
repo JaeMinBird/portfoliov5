@@ -1,7 +1,18 @@
 'use client'
 
 import React, { useRef, useEffect, useCallback, useState } from 'react'
-import * as THREE from 'three'
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  Group,
+  AmbientLight,
+  DirectionalLight,
+  MeshBasicMaterial,
+  Mesh,
+  Box3,
+  Vector3,
+} from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import Image from 'next/image'
 import { COLORS, BREAKPOINTS } from '@/lib/constants'
@@ -56,10 +67,10 @@ const TAP_SENSITIVITY_X = 0.015;
 
 export default function ThreeJSLogo() {
   const mountRef = useRef<HTMLDivElement>(null)
-  const sceneRef = useRef<THREE.Scene | null>(null)
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null)
-  const pivotRef = useRef<THREE.Group | null>(null)
+  const sceneRef = useRef<Scene | null>(null)
+  const rendererRef = useRef<WebGLRenderer | null>(null)
+  const cameraRef = useRef<PerspectiveCamera | null>(null)
+  const pivotRef = useRef<Group | null>(null)
   const frameId = useRef<number | null>(null)
   const targetRotation = useRef({ x: 0, y: 0 })
   const isMobileRef = useRef(false)
@@ -75,13 +86,14 @@ export default function ThreeJSLogo() {
   const [modelLoaded, setModelLoaded] = useState(false)
 
   // ── Mouse handlers (desktop only) ──────────────────────────────────────
+  // Tracks the cursor across the entire viewport — not just the canvas —
+  // so the logo reacts wherever the user moves their mouse on the page.
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
-    if (isMobileRef.current || !mountRef.current) return
+    if (isMobileRef.current) return
 
-    const rect = mountRef.current.getBoundingClientRect()
-    const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
-    const y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+    const x = (event.clientX / window.innerWidth) * 2 - 1
+    const y = -(event.clientY / window.innerHeight) * 2 + 1
 
     targetRotation.current.y = x * MOUSE_SENSITIVITY_Y
     targetRotation.current.x = -y * MOUSE_SENSITIVITY_X
@@ -150,10 +162,10 @@ export default function ThreeJSLogo() {
     isMobileRef.current = mobile
 
     // --- Scene & camera ---
-    const scene = new THREE.Scene()
+    const scene = new Scene()
     sceneRef.current = scene
 
-    const camera = new THREE.PerspectiveCamera(
+    const camera = new PerspectiveCamera(
       CAMERA_FOV,
       mount.clientWidth / mount.clientHeight,
       0.1,
@@ -164,9 +176,9 @@ export default function ThreeJSLogo() {
     cameraRef.current = camera
 
     // --- Renderer ---
-    let renderer: THREE.WebGLRenderer
+    let renderer: WebGLRenderer
     try {
-      renderer = new THREE.WebGLRenderer({
+      renderer = new WebGLRenderer({
         antialias: !mobile,
         alpha: true,
         powerPreference: mobile ? 'default' : 'high-performance',
@@ -196,10 +208,10 @@ export default function ThreeJSLogo() {
     mount.appendChild(renderer.domElement)
 
     // --- Lighting ---
-    scene.add(new THREE.AmbientLight(0xffffff, mobile ? 0.8 : 0.6))
+    scene.add(new AmbientLight(0xffffff, mobile ? 0.8 : 0.6))
 
     if (!mobile) {
-      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8)
+      const dirLight = new DirectionalLight(0xffffff, 0.8)
       dirLight.position.set(1, 1, 2)
       scene.add(dirLight)
     }
@@ -211,13 +223,13 @@ export default function ThreeJSLogo() {
       (gltf) => {
         const model = gltf.scene
 
-        const material = new THREE.MeshBasicMaterial({
+        const material = new MeshBasicMaterial({
           color: parseInt(COLORS.accent.replace('#', ''), 16),
           wireframe: true,
         })
 
         model.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
+          if (child instanceof Mesh) {
             child.material = material
             child.frustumCulled = false
             child.castShadow = false
@@ -226,15 +238,15 @@ export default function ThreeJSLogo() {
         })
 
         // Centre and normalise scale so the model fills the viewport.
-        const box = new THREE.Box3().setFromObject(model)
-        const center = box.getCenter(new THREE.Vector3())
-        const size = box.getSize(new THREE.Vector3())
+        const box = new Box3().setFromObject(model)
+        const center = box.getCenter(new Vector3())
+        const size = box.getSize(new Vector3())
         model.position.sub(center)
 
         const maxDim = Math.max(size.x, size.y, size.z)
         model.scale.setScalar(MODEL_TARGET_SIZE / maxDim)
 
-        const pivot = new THREE.Group()
+        const pivot = new Group()
         pivot.add(model)
         scene.add(pivot)
         pivotRef.current = pivot
@@ -301,26 +313,28 @@ export default function ThreeJSLogo() {
     }
 
     // --- Event listeners ---
-    if (mobile && mount) {
+    if (mobile) {
       mount.addEventListener('touchstart', handleTouchStart, { passive: true })
-    }
-    if (!mobile && mount) {
-      mount.addEventListener('mousemove', handleMouseMove, { passive: true })
-      mount.addEventListener('mouseleave', handleMouseLeave, { passive: true })
+    } else {
+      // Listen on window so the logo tracks the cursor anywhere on the page.
+      window.addEventListener('mousemove', handleMouseMove, { passive: true })
+      // mouseleave on the document element fires when the cursor exits the viewport.
+      document.documentElement.addEventListener('mouseleave', handleMouseLeave, { passive: true })
     }
     window.addEventListener('resize', handleResize, { passive: true })
     animate(0)
 
     // --- Cleanup ---
+    // Use the `mobile` closure captured at mount time — not `isMobileRef.current`,
+    // which may have flipped if the viewport crossed the breakpoint since setup.
     return () => {
       if (frameId.current) cancelAnimationFrame(frameId.current)
 
-      if (isMobileRef.current && mount) {
+      if (mobile) {
         mount.removeEventListener('touchstart', handleTouchStart)
-      }
-      if (!isMobileRef.current && mount) {
-        mount.removeEventListener('mousemove', handleMouseMove)
-        mount.removeEventListener('mouseleave', handleMouseLeave)
+      } else {
+        window.removeEventListener('mousemove', handleMouseMove)
+        document.documentElement.removeEventListener('mouseleave', handleMouseLeave)
       }
       window.removeEventListener('resize', handleResize)
 
@@ -331,7 +345,7 @@ export default function ThreeJSLogo() {
 
       // Dispose all geometries and materials to prevent GPU memory leaks.
       sceneRef.current?.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
+        if (object instanceof Mesh) {
           object.geometry?.dispose()
           if (Array.isArray(object.material)) {
             object.material.forEach(m => m.dispose())

@@ -129,38 +129,56 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
   const [activeSection, setActiveSection] = useState('overview');
   const scrollToSection = useScrollToSection(100);
 
-  /** Scroll-spy — highlights the sidebar dot matching the visible section. */
+  /**
+   * Scroll-spy — highlights the sidebar dot matching the visible section.
+   *
+   * Section offsets are measured once on mount (and again on resize) and
+   * cached, so the scroll handler only reads `window.scrollY` per event
+   * instead of calling `getElementById`/`offsetTop` on every tick.
+   */
   useEffect(() => {
+    type SectionRect = { id: string; top: number; bottom: number };
+    let sectionRects: SectionRect[] = [];
+    let overviewThreshold = 400;
+    let offset = 150;
+
+    const measure = () => {
+      const isMobile = window.innerWidth < 768;
+      offset = isMobile ? 100 : 150;
+      overviewThreshold = isMobile ? 300 : 400;
+
+      sectionRects = SECTIONS.slice(1).flatMap((section) => {
+        const el = document.getElementById(section.id);
+        if (!el) return [];
+        const top = el.offsetTop - offset;
+        return [{ id: section.id, top, bottom: top + el.offsetHeight }];
+      });
+    };
+
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
-      const isMobile = window.innerWidth < 768;
-      const offset = isMobile ? 100 : 150;
-      const overviewThreshold = isMobile ? 300 : 400;
 
       if (scrollPosition + offset < overviewThreshold) {
         setActiveSection('overview');
         return;
       }
 
-      for (const section of SECTIONS.slice(1)) {
-        const element = document.getElementById(section.id);
-        if (element) {
-          const elementTop = element.offsetTop - offset;
-          const elementBottom = elementTop + element.offsetHeight;
-
-          if (scrollPosition >= elementTop && scrollPosition < elementBottom) {
-            setActiveSection(section.id);
-            return;
-          }
+      for (const rect of sectionRects) {
+        if (scrollPosition >= rect.top && scrollPosition < rect.bottom) {
+          setActiveSection(rect.id);
+          return;
         }
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleScroll);
+    measure();
+    handleScroll();
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', measure, { passive: true });
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
+      window.removeEventListener('resize', measure);
     };
   }, []);
 

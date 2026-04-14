@@ -61,7 +61,13 @@ export default function Bumper({ className = '', number, sectionHeader, id }: Bu
     };
   }, []);
 
-  const fadeInClass = isVisible
+  // A bumper counts as "revealed" whenever it's in the viewport OR the user
+  // has already scrolled past it (progress == 1). Scrolling back up through
+  // it still animates normally because progress decreases as the bumper
+  // re-enters the viewport — only the fully-past case stays pinned.
+  const isRevealed = isVisible || scrollProgress >= 1;
+
+  const fadeInClass = isRevealed
     ? 'opacity-100 translate-y-0'
     : 'opacity-0 translate-y-2';
 
@@ -80,7 +86,7 @@ export default function Bumper({ className = '', number, sectionHeader, id }: Bu
               style={{
                 backgroundColor: COLORS.accent,
                 width: '100%',
-                transform: `scaleX(${isVisible ? scrollProgress : 0})`,
+                transform: `scaleX(${isRevealed ? scrollProgress : 0})`,
               }}
             />
           </div>

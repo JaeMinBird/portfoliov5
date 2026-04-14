@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { COLORS, LINKS } from '@/lib/constants';
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 // ---------------------------------------------------------------------------
 // FooterLink — slide-up hover link. Previously copy-pasted 4×.
 // ---------------------------------------------------------------------------
@@ -43,7 +45,6 @@ interface FooterProps {
 }
 
 export default function Footer({ className = '', width = '80vw' }: FooterProps) {
-  const currentYear = new Date().getFullYear();
   const { isMobile } = useBreakpoint();
   const footerWidth = isMobile ? '100%' : width;
 
@@ -94,7 +95,7 @@ export default function Footer({ className = '', width = '80vw' }: FooterProps) 
           {/* Copyright */}
           <div className="w-full mt-auto pb-2 md:pb-3">
             <p className="text-sm md:text-base text-white">
-              © {currentYear} All rights reserved
+              © {CURRENT_YEAR} All rights reserved
             </p>
           </div>
         </div>
