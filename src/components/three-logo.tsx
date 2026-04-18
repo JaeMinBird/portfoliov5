@@ -15,7 +15,8 @@ import {
 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import Image from 'next/image'
-import { COLORS, BREAKPOINTS } from '@/lib/constants'
+import { AnimatePresence, motion } from 'framer-motion'
+import { COLORS, BREAKPOINTS, EASE_DEFAULT } from '@/lib/constants'
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -394,26 +395,44 @@ export default function ThreeJSLogo() {
 
   return (
     <>
-      {/* Static SVG placeholder — shown until the 3D model is ready. */}
-      {!modelLoaded && (
-        <div className="absolute inset-0 bg-white flex items-center justify-center">
-          <Image
-            src="/logo.svg"
-            alt="Logo"
-            width={128}
-            height={128}
-            priority
-            className="w-32 h-32 md:w-40 md:h-40"
-            sizes="(max-width: 768px) 128px, 160px"
-          />
-        </div>
-      )}
+      {/* Static SVG placeholder — cross-fades out as the 3D model loads in.
+          A subtle scale-up on exit makes the handoff feel intentional rather
+          than a hard swap. */}
+      <AnimatePresence>
+        {!modelLoaded && (
+          <motion.div
+            key="placeholder"
+            className="absolute inset-0 bg-white flex items-center justify-center pointer-events-none"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 1.06 }}
+            transition={{ duration: 0.7, ease: EASE_DEFAULT }}
+          >
+            <Image
+              src="/logo.svg"
+              alt="Logo"
+              width={128}
+              height={128}
+              priority
+              className="w-32 h-32 md:w-40 md:h-40"
+              sizes="(max-width: 768px) 128px, 160px"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Three.js canvas */}
-      <div
+      {/* Three.js canvas — fades + gently scales up when the model is ready. */}
+      <motion.div
         ref={mountRef}
         className="w-full h-full"
         style={{ pointerEvents: 'auto' }}
+        initial={false}
+        animate={
+          modelLoaded
+            ? { opacity: 1, scale: 1 }
+            : { opacity: 0, scale: 0.96 }
+        }
+        transition={{ duration: 0.9, ease: EASE_DEFAULT, delay: modelLoaded ? 0.15 : 0 }}
       />
     </>
   )
