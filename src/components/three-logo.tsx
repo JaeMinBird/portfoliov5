@@ -1,17 +1,18 @@
 'use client'
 
-import React, { useRef, useEffect, useCallback, useState } from 'react'
+import { useRef, useEffect, useCallback, useState } from 'react'
 import {
-  Scene,
-  PerspectiveCamera,
-  WebGLRenderer,
-  Group,
   AmbientLight,
-  DirectionalLight,
-  MeshBasicMaterial,
-  Mesh,
   Box3,
+  DirectionalLight,
+  Group,
+  Mesh,
+  PerspectiveCamera,
+  Points,
+  PointsMaterial,
+  Scene,
   Vector3,
+  WebGLRenderer,
 } from 'three'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import Image from 'next/image'
@@ -55,10 +56,14 @@ const TAP_SENSITIVITY_X = 0.015;
  *  `COLORS.accent` on every model load. */
 const ACCENT_HEX = parseInt(COLORS.accent.replace('#', ''), 16);
 
+/** World-space diameter of each rendered vertex. With `sizeAttenuation`
+ *  enabled, points further from the camera render smaller. */
+const POINT_SIZE = 0.01;
+
 // ---------------------------------------------------------------------------
 // ThreeJSLogo (default export)
 //
-// Renders a wireframe 3D logo loaded from `/logo.glb`.
+// Renders the 3D logo loaded from `/logo.glb` as a fixed point cloud.
 //
 // Desktop: the model follows the cursor via smooth linear interpolation.
 // Mobile:  the model gently oscillates using sine/cosine functions.
@@ -68,6 +73,8 @@ const ACCENT_HEX = parseInt(COLORS.accent.replace('#', ''), 16);
 //   - Rendering pauses entirely when the component scrolls out of view
 //     (tracked via IntersectionObserver).
 //   - Pixel ratio capped at 2 to avoid unnecessary GPU load on Retina.
+//   - GLTF geometries are reused as-is — Points objects share the source
+//     buffers rather than cloning vertex data.
 // ---------------------------------------------------------------------------
 
 export default function ThreeJSLogo() {
@@ -87,6 +94,10 @@ export default function ThreeJSLogo() {
   const tapBlend = useRef(0)          // 1 = fully aimed at tap, 0 = fully idle
   const tapHoldUntil = useRef(0)      // timestamp when the hold phase ends
   const isTapActive = useRef(false)   // whether a tap interaction is in progress
+
+  // Holds the loaded (and mutated-in-place) GLTF scene so we can dispose
+  // its geometries and our generated Points materials on unmount.
+  const gltfSceneRef = useRef<Group | null>(null)
 
   const [modelLoaded, setModelLoaded] = useState(false)
 
@@ -229,6 +240,9 @@ export default function ThreeJSLogo() {
     mount.appendChild(renderer.domElement)
 
     // --- Lighting ---
+    // These only affect lit materials (currently none of the styles use
+    // one), but we keep them so swapping in a lit material later works
+    // without reconfiguring the scene.
     scene.add(new AmbientLight(0xffffff, mobile ? 0.8 : 0.6))
 
     if (!mobile) {
@@ -237,26 +251,17 @@ export default function ThreeJSLogo() {
       scene.add(dirLight)
     }
 
+    // Pivot is populated below once the GLTF finishes loading.
+    const pivot = new Group()
+    scene.add(pivot)
+    pivotRef.current = pivot
+
     // --- Model loading ---
     const loader = new GLTFLoader()
     loader.load(
       '/logo.glb',
       (gltf) => {
         const model = gltf.scene
-
-        const material = new MeshBasicMaterial({
-          color: ACCENT_HEX,
-          wireframe: true,
-        })
-
-        model.traverse((child) => {
-          if (child instanceof Mesh) {
-            child.material = material
-            child.frustumCulled = false
-            child.castShadow = false
-            child.receiveShadow = false
-          }
-        })
 
         // Centre and normalise scale so the model fills the viewport.
         const box = new Box3().setFromObject(model)
@@ -267,11 +272,44 @@ export default function ThreeJSLogo() {
         const maxDim = Math.max(size.x, size.y, size.z)
         model.scale.setScalar(MODEL_TARGET_SIZE / maxDim)
 
-        const pivot = new Group()
-        pivot.add(model)
-        scene.add(pivot)
-        pivotRef.current = pivot
+        // Replace every Mesh in the loaded scene with a Points object that
+        // shares the same geometry. The original GLTF materials are
+        // discarded; geometries are reused (no clone) since we never
+        // mutate vertex data.
+        const meshes: Mesh[] = []
+        model.traverse((child) => {
+          if (child instanceof Mesh) meshes.push(child)
+        })
 
+        for (const mesh of meshes) {
+          if (Array.isArray(mesh.material)) {
+            mesh.material.forEach((m) => m.dispose())
+          } else {
+            mesh.material?.dispose()
+          }
+
+          const material = new PointsMaterial({
+            color: ACCENT_HEX,
+            size: POINT_SIZE,
+            sizeAttenuation: true,
+            transparent: true,
+            depthWrite: false,
+          })
+          const points = new Points(mesh.geometry, material)
+          points.position.copy(mesh.position)
+          points.rotation.copy(mesh.rotation)
+          points.scale.copy(mesh.scale)
+          points.frustumCulled = false
+
+          const parent = mesh.parent
+          if (parent) {
+            parent.add(points)
+            parent.remove(mesh)
+          }
+        }
+
+        pivot.add(model)
+        gltfSceneRef.current = model
         setModelLoaded(true)
       },
       undefined,
@@ -374,22 +412,27 @@ export default function ThreeJSLogo() {
       }
       window.removeEventListener('resize', handleResize)
 
-      if (mount && rendererRef.current?.domElement) {
-        mount.removeChild(rendererRef.current.domElement)
+      const rendererCanvas = rendererRef.current?.domElement
+      if (mount && rendererCanvas && rendererCanvas.parentNode === mount) {
+        mount.removeChild(rendererCanvas)
       }
       rendererRef.current?.dispose()
 
-      // Dispose all geometries and materials to prevent GPU memory leaks.
-      sceneRef.current?.traverse((object) => {
-        if (object instanceof Mesh) {
+      // Walk the loaded scene (with Meshes already swapped for Points) and
+      // release the materials we allocated plus the shared GLTF geometries.
+      gltfSceneRef.current?.traverse((object) => {
+        if (object instanceof Points) {
           object.geometry?.dispose()
           if (Array.isArray(object.material)) {
-            object.material.forEach(m => m.dispose())
+            object.material.forEach((m) => m.dispose())
           } else {
             object.material?.dispose()
           }
+        } else if (object instanceof Mesh) {
+          object.geometry?.dispose()
         }
       })
+      gltfSceneRef.current = null
     }
   }, [handleMouseMove, handleMouseLeave, handleTouchStart, handleResize])
 

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import { COLORS } from '@/lib/constants';
 
 // ---------------------------------------------------------------------------
@@ -24,49 +23,49 @@ interface BumperProps {
  * Architecture: Three layers are stacked inside a pill-shaped container.
  *
  * 1. **Outer border** — accent-colored pill outline.
- * 2. **Fill bar** — accent-colored bar scaled via `transform: scaleX()`
- *    driven by a framer-motion `MotionValue`, so scroll updates don't
- *    trigger React re-renders.
+ * 2. **Fill bar** — accent-colored bar that scales from 0→100% width as
+ *    the user scrolls past. Uses `transform: scaleX()` for GPU compositing.
  * 3. **Dual text layers** — the bottom layer is accent-colored text, the
- *    top layer is white text revealed by scaling an overlay clip.
+ *    top layer is white text clipped to the fill progress via `clip-path`.
+ *    This creates the effect of text color "inverting" as the fill sweeps.
  */
 export default function Bumper({ className = '', number, sectionHeader, id }: BumperProps) {
   const bumperRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [isPastStart, setIsPastStart] = useState(false);
-
-  // Scroll progress from "bumper top hits viewport bottom" (0) → "bumper top
-  // hits viewport top" (1).
-  const { scrollYProgress } = useScroll({
-    target: bumperRef,
-    offset: ['start end', 'start start'],
-  });
-
-  // scaleX and clip reveal both derive from the same MotionValue → no React
-  // re-render occurs during scroll.
-  const clipRight = useTransform(scrollYProgress, (v) => `inset(0 ${(1 - v) * 100}% 0 0)`);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    const el = bumperRef.current;
-    if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
       { threshold: 0.2 },
     );
-    observer.observe(el);
-    return () => observer.disconnect();
+
+    const handleScroll = () => {
+      if (bumperRef.current) {
+        const rect = bumperRef.current.getBoundingClientRect();
+        const progress = 1 - rect.top / window.innerHeight;
+        setScrollProgress(Math.min(Math.max(progress, 0), 1));
+      }
+    };
+
+    const el = bumperRef.current;
+    if (el) {
+      observer.observe(el);
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      handleScroll(); // set initial value
+    }
+
+    return () => {
+      if (el) observer.unobserve(el);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
-  // Track whether the user has fully scrolled past the bumper so it stays
-  // "revealed" once they've cleared it. Only updates on boundary crossings.
-  useMotionValueEvent(scrollYProgress, 'change', (v) => {
-    setIsPastStart((prev) => {
-      const next = v >= 1;
-      return prev === next ? prev : next;
-    });
-  });
-
-  const isRevealed = isVisible || isPastStart;
+  // A bumper counts as "revealed" whenever it's in the viewport OR the user
+  // has already scrolled past it (progress == 1). Scrolling back up through
+  // it still animates normally because progress decreases as the bumper
+  // re-enters the viewport — only the fully-past case stays pinned.
+  const isRevealed = isVisible || scrollProgress >= 1;
 
   const fadeInClass = isRevealed
     ? 'opacity-100 translate-y-0'
@@ -82,11 +81,12 @@ export default function Bumper({ className = '', number, sectionHeader, id }: Bu
         >
           {/* Inner gap + fill bar */}
           <div className="absolute inset-1 rounded-full bg-transparent overflow-hidden">
-            <motion.div
-              className="absolute top-0 left-0 h-full w-full origin-left rounded-full"
+            <div
+              className="absolute top-0 left-0 h-full transition-transform duration-1000 ease-out origin-left rounded-full"
               style={{
                 backgroundColor: COLORS.accent,
-                scaleX: scrollYProgress,
+                width: '100%',
+                transform: `scaleX(${isRevealed ? scrollProgress : 0})`,
               }}
             />
           </div>
@@ -110,10 +110,13 @@ export default function Bumper({ className = '', number, sectionHeader, id }: Bu
           </div>
         </div>
 
-        {/* White text overlay — clipped from the right, driven by MotionValue */}
-        <motion.div
+        {/* White text overlay (clipped to fill progress) */}
+        <div
           className="absolute inset-0 flex items-center px-6"
-          style={{ clipPath: clipRight }}
+          style={{
+            clipPath: `polygon(0 0, ${scrollProgress * 100}% 0, ${scrollProgress * 100}% 100%, 0 100%)`,
+            transition: 'clip-path 700ms ease-out',
+          }}
         >
           <div className="flex items-center gap-3">
             <span className={`font-bold text-lg text-white transition-all duration-700 ${fadeInClass}`}>
@@ -123,7 +126,7 @@ export default function Bumper({ className = '', number, sectionHeader, id }: Bu
               {sectionHeader}
             </span>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

@@ -133,9 +133,7 @@ function ProjectTitleTag({ line, isMobile }: { line: string; isMobile: boolean }
     return (
       <div className="overflow-hidden rounded-sm">
         <motion.div
-          className="text-white px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium select-none"
-          style={{ backgroundColor: COLORS.accent }}
-          whileHover={{ scale: 1.05, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)' }}
+          className="bg-black text-white px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium select-none"
         >
           {line}
         </motion.div>
