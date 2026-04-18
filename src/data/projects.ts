@@ -8,10 +8,9 @@ export interface ProjectInfo {
   technologies: string[];
   // Extended properties for article page
   heroImage?: string;
-  conceptSentence?: string;
-  role?: string;
   platform?: string;
   stack?: string[];
+  repo?: string;
   problem?: string;
   solution?: string;
   reflection?: string;
@@ -34,8 +33,6 @@ export const projectData: ProjectInfo[] = [
     technologies: ["Python", "PyTorch", "Transformers", "Flask", "BeautifulSoup4"],
     // Article content
     heroImage: "/project-images/rsam.png",
-    conceptSentence: "Intelligent professor review analysis",
-    role: "Developer",
     platform: "Web Application & Automated Pipeline",
     stack: ["Python", "PyTorch", "Flask", "BeautifulSoup", "Pandas", "Scikit-learn"],
     problem: "Students at Penn State lacked comprehensive tools to analyze professor reviews beyond simple ratings. Traditional review systems didn't account for the nuanced relationship between difficulty and quality, making it challenging to identify truly excellent professors versus easy graders. Additionally, manual analysis of thousands of reviews was impractical for extracting meaningful departmental insights.",
@@ -52,8 +49,6 @@ export const projectData: ProjectInfo[] = [
     technologies: ["React", "Next.js", "TypeScript", "MongoDB", "OpenAI"],
     // Article content
     heroImage: "/project-images/timely.png",
-    conceptSentence: "Natural language calendar management",
-    role: "Co-Developer (Database Focus)",
     platform: "Web Application",
     stack: ["React", "Next.js", "TypeScript", "MongoDB", "Google Cloud Platform", "OpenAI API", "Google Gemini API", "Tailwind CSS"],
     problem: "Traditional calendar applications require users to navigate complex interfaces and fill out multiple form fields for simple scheduling tasks. Users wanted a more intuitive way to manage their schedules through natural conversation, similar to how they would ask a human assistant. Existing solutions lacked the seamless integration between AI conversation and actual calendar functionality.",
@@ -70,8 +65,6 @@ export const projectData: ProjectInfo[] = [
     technologies: ["React", "Next.js", "TypeScript", "PostgreSQL", "AWS"],
     // Article content
     heroImage: "/project-images/ecommerce.png",
-    conceptSentence: "Rebuilding e-commerce fundamentals",
-    role: "Full Stack Developer & Designer",
     platform: "Web Application",
     stack: ["React", "Next.js", "TypeScript", "Tailwind CSS", "PostgreSQL", "AWS", "Prisma ORM", "Stripe"],
     problem: "Rather than relying on existing e-commerce solutions like Shopify, I wanted to build a premium fashion platform from the ground up to master the full complexity of modern web commerce. This meant architecting everything from database relationships and payment processing to sophisticated UI interactions and responsive design systems. The challenge was creating a minimalist, typography-focused shopping experience that worked seamlessly across devices while implementing robust backend systems for inventory, orders, and payments.",

@@ -1,29 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { ProjectInfo } from '../data/projects';
 import Footer from './footer';
 import StickyHeader from './nav';
-import { useScrollToSection } from '@/hooks/use-scroll-to-section';
-import { COLORS } from '@/lib/constants';
+import { COLORS, LINKS } from '@/lib/constants';
 
 // ---------------------------------------------------------------------------
-// Article sidebar sections — single source of truth for nav + scroll spy.
-// ---------------------------------------------------------------------------
-
-const SECTIONS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'problem', label: 'Problem' },
-  { id: 'solution', label: 'Solution' },
-  { id: 'reflection', label: 'Reflection' },
-] as const;
-
-// ---------------------------------------------------------------------------
-// ArticleSection — DRY component for Problem/Solution/Reflection blocks.
-// Previously these three blocks were copy-pasted with only the title and
-// content field differing.
+// ArticleSection — alternating left/right split with square image preview.
 // ---------------------------------------------------------------------------
 
 interface ArticleSectionProps {
@@ -33,6 +18,7 @@ interface ArticleSectionProps {
   fallback: string;
   sectionImage?: string;
   projectTitle: string;
+  isReversed: boolean;
 }
 
 function ArticleSection({
@@ -42,80 +28,51 @@ function ArticleSection({
   fallback,
   sectionImage,
   projectTitle,
+  isReversed,
 }: ArticleSectionProps) {
   return (
     <motion.section
       id={id}
-      className="mb-16 md:mb-24"
+      className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16 md:mb-24"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
     >
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 xl:gap-12">
-        {/* Left — heading + optional image */}
-        <div className="w-full md:w-2/5 lg:w-[35%]">
-          <h2
-            className="text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-bold leading-tight mb-4 md:mb-0"
-            style={{ color: COLORS.accent }}
-          >
-            {title}
-          </h2>
+      {/* Text — title stacked above body */}
+      <div
+        className={`flex flex-col gap-4 md:gap-6 ${isReversed ? 'md:order-2' : 'md:order-1'}`}
+      >
+        <h2
+          className="text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold leading-tight"
+          style={{ color: COLORS.accent }}
+        >
+          {title}
+        </h2>
+        <p className="text-base md:text-lg lg:text-xl leading-relaxed text-black">
+          {content || fallback}
+        </p>
+      </div>
 
-          {sectionImage && (
-            <div
-              className="w-full aspect-[4/3] rounded-lg overflow-hidden mt-4 flex items-center justify-center relative"
-              style={{ backgroundColor: '#f5f5f5' }}
-            >
-              <Image
-                src={sectionImage}
-                alt={`${projectTitle} ${id} section`}
-                fill
-                sizes="(max-width: 768px) 90vw, 35vw"
-                className="rounded-lg object-contain p-[7.5%]"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Right — body text */}
-        <div className="w-full md:w-3/5 lg:w-[65%] flex items-center">
-          <p className="text-lg sm:text-xl md:text-xl lg:text-2xl leading-relaxed text-black">
-            {content || fallback}
-          </p>
-        </div>
+      {/* Square image preview — stretches to text height on desktop */}
+      <div
+        className={`aspect-square md:aspect-auto rounded-lg overflow-hidden relative ${isReversed ? 'md:order-1' : 'md:order-2'}`}
+        style={{ backgroundColor: '#f5f5f5' }}
+      >
+        {sectionImage && (
+          <Image
+            src={sectionImage}
+            alt={`${projectTitle} ${id}`}
+            fill
+            sizes="(max-width: 768px) 90vw, 40vw"
+            className="object-contain p-[7.5%]"
+          />
+        )}
       </div>
     </motion.section>
   );
 }
 
-// ---------------------------------------------------------------------------
-// MetadataField — Role / Platform / Stack field (used in mobile grid & desktop list).
-// ---------------------------------------------------------------------------
-
-interface MetadataFieldProps {
-  label: string;
-  value: string;
-  className?: string;
-}
-
-function MetadataField({ label, value, className = '' }: MetadataFieldProps) {
-  return (
-    <>
-      <div className={`text-left ${className}`}>
-        <span
-          className="uppercase tracking-wider font-medium"
-          style={{ color: COLORS.accent }}
-        >
-          [ {label} ]
-        </span>
-      </div>
-      <div className={`text-left ${className}`}>
-        <span className="text-black font-light">{value}</span>
-      </div>
-    </>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // ProjectArticle (default export)
@@ -126,81 +83,11 @@ interface ProjectArticleProps {
 }
 
 export default function ProjectArticle({ project }: ProjectArticleProps) {
-  const [activeSection, setActiveSection] = useState('overview');
-  const scrollToSection = useScrollToSection(100);
-
-  /**
-   * Scroll-spy — highlights the sidebar dot matching the visible section.
-   *
-   * Section offsets are measured once on mount (and again on resize) and
-   * cached, so the scroll handler only reads `window.scrollY` per event
-   * instead of calling `getElementById`/`offsetTop` on every tick.
-   */
-  useEffect(() => {
-    type SectionRect = { id: string; top: number; bottom: number };
-    let sectionRects: SectionRect[] = [];
-    let overviewThreshold = 400;
-    let offset = 150;
-
-    const measure = () => {
-      const isMobile = window.innerWidth < 768;
-      offset = isMobile ? 100 : 150;
-      overviewThreshold = isMobile ? 300 : 400;
-
-      sectionRects = SECTIONS.slice(1).flatMap((section) => {
-        const el = document.getElementById(section.id);
-        if (!el) return [];
-        const top = el.offsetTop - offset;
-        return [{ id: section.id, top, bottom: top + el.offsetHeight }];
-      });
-    };
-
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-
-      if (scrollPosition + offset < overviewThreshold) {
-        setActiveSection('overview');
-        return;
-      }
-
-      for (const rect of sectionRects) {
-        if (scrollPosition >= rect.top && scrollPosition < rect.bottom) {
-          setActiveSection(rect.id);
-          return;
-        }
-      }
-    };
-
-    measure();
-    handleScroll();
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', measure, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', measure);
-    };
-  }, []);
-
-  /** Handle sidebar click — overview scrolls to top, others to their section. */
-  const handleSidebarClick = (sectionId: string) => {
-    if (sectionId === 'overview') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      scrollToSection(sectionId);
-    }
-  };
-
   const metadataFields = [
-    { label: 'ROLE', value: project.role || 'Developer' },
-    { label: 'PLATFORM', value: project.platform || 'Web Application' },
+    { label: 'TYPE', value: project.platform || 'Web Application' },
     { label: 'STACK', value: (project.stack || project.technologies).join(', ') },
   ];
 
-  /**
-   * The content sections (Problem, Solution, Reflection) that were
-   * previously 3 identical copy-pasted blocks.
-   */
   const contentSections = [
     {
       id: 'problem',
@@ -229,46 +116,12 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
     <div className="min-h-screen bg-white">
       <StickyHeader />
 
-      {/* ── Sidebar navigation (desktop only) ──────────────────────────── */}
-      <motion.div
-        className="fixed left-4 lg:left-8 top-1/2 -translate-y-1/2 z-50 hidden xl:block"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.5 }}
-      >
-        <div className="flex flex-col gap-6">
-          {SECTIONS.map((section) => (
-            <button
-              key={section.id}
-              onClick={() => handleSidebarClick(section.id)}
-              className={`text-left transition-all duration-200 cursor-pointer ${activeSection === section.id
-                  ? 'font-medium'
-                  : 'text-gray-400 hover:text-gray-600'
-                }`}
-              style={{ color: activeSection === section.id ? COLORS.accent : undefined }}
-            >
-              <div className="flex items-center gap-4">
-                <div
-                  className="w-3 h-3 rounded-full transition-all duration-200"
-                  style={{
-                    backgroundColor:
-                      activeSection === section.id ? COLORS.accent : '#d1d5db',
-                  }}
-                />
-                <span className="text-base uppercase tracking-wider">
-                  {section.label}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </motion.div>
-
       {/* ── Main content ───────────────────────────────────────────────── */}
-      <div className="w-[90vw] md:w-[70vw] lg:w-[60vw] mx-auto pt-20 md:pt-32 px-4 md:px-0">
+      <div className="w-[90vw] md:w-[80vw] mx-auto pt-32 md:pt-32 px-4 md:px-0">
+
         {/* Hero image */}
         <motion.div
-          className="w-[80vw] md:w-[50vw] lg:w-[40vw] mx-auto aspect-[4/3] rounded-lg overflow-hidden mb-12 md:mb-16 flex items-center justify-center relative"
+          className="max-w-3xl mx-auto aspect-[4/3] md:aspect-[16/10] rounded-lg overflow-hidden mb-6 md:mb-8 relative"
           style={{ backgroundColor: '#f5f5f5' }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -279,8 +132,8 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
               src={project.heroImage}
               alt={`${project.title} hero image`}
               fill
-              sizes="(max-width: 768px) 80vw, (max-width: 1024px) 50vw, 40vw"
-              className="rounded-lg object-contain p-[7.5%]"
+              sizes="(max-width: 768px) 90vw, 768px"
+              className="object-contain p-[5%]"
               priority
             />
           ) : (
@@ -290,64 +143,84 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
           )}
         </motion.div>
 
+        {/* GitHub link */}
+        <motion.div
+          className="max-w-3xl mx-auto flex justify-center mb-12 md:mb-16"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <a
+            href={project.repo || LINKS.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm uppercase tracking-wider font-medium text-black hover:opacity-70 transition-opacity"
+          >
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+            </svg>
+            <span>GitHub</span>
+          </a>
+        </motion.div>
+
         {/* Overview section */}
         <motion.section
           id="overview"
-          className="mb-16 md:mb-24"
+          className="mb-10 md:mb-24"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            {/* Left — title + description (80%) */}
-            <div className="w-full lg:w-4/5">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-light mb-4 text-black leading-tight text-left">
-                {project.title}
-              </h1>
-              <h2 className="text-3xl md:text-4xl font-light mb-8 lg:mb-12 text-gray-400 leading-tight text-left">
-                {project.conceptSentence || 'A comprehensive solution'}
-              </h2>
-              <p className="text-xl md:text-2xl leading-relaxed text-black max-w-4xl text-left mb-8 lg:mb-0">
+          <div className="flex flex-col lg:grid lg:grid-cols-[4fr_1fr] lg:gap-x-12">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-light mb-8 lg:mb-12 text-black leading-tight text-left lg:col-start-1 lg:row-start-1">
+              {project.title}
+            </h1>
+
+            <div className="hidden lg:block lg:col-start-2 lg:row-start-1 text-base">
+              <div className="mb-2">
+                <span className="uppercase tracking-wider font-medium" style={{ color: COLORS.accent }}>
+                  [ {metadataFields[0].label} ]
+                </span>
+              </div>
+              <div className="text-black font-light">{metadataFields[0].value}</div>
+            </div>
+
+            <div
+              className="max-w-4xl pl-6 border-l-2 mb-8 lg:mb-0 lg:col-start-1 lg:row-start-2"
+              style={{ borderColor: COLORS.accent }}
+            >
+              <p className="text-[10px] uppercase tracking-[0.3em] font-semibold mb-3" style={{ color: COLORS.accent }}>
+                Abstract
+              </p>
+              <p className="text-xl md:text-2xl leading-relaxed text-black text-left">
                 {project.description}
               </p>
             </div>
 
-            {/* Right — metadata (20%) */}
-            <div className="w-full lg:w-1/5 lg:flex lg:items-center">
-              <div className="w-full">
-                {/* Mobile: 2-column grid */}
-                <div
-                  className="grid gap-x-4 gap-y-3 lg:hidden text-sm"
-                  style={{ gridTemplateColumns: '1fr 2fr' }}
-                >
-                  {metadataFields.map((f) => (
-                    <MetadataField key={f.label} {...f} />
-                  ))}
-                </div>
-
-                {/* Desktop: vertical stack */}
-                <div className="hidden lg:flex lg:flex-col lg:gap-8 text-base">
-                  {metadataFields.map((f) => (
-                    <div key={f.label}>
-                      <div className="mb-2">
-                        <span
-                          className="uppercase tracking-wider font-medium"
-                          style={{ color: COLORS.accent }}
-                        >
-                          [ {f.label} ]
-                        </span>
-                      </div>
-                      <div className="text-black font-light">{f.value}</div>
-                    </div>
-                  ))}
-                </div>
+            <div className="hidden lg:block lg:col-start-2 lg:row-start-2 text-base">
+              <div className="mb-2">
+                <span className="uppercase tracking-wider font-medium" style={{ color: COLORS.accent }}>
+                  [ {metadataFields[1].label} ]
+                </span>
               </div>
+              <div className="text-black font-light">{metadataFields[1].value}</div>
+            </div>
+
+            <div className="flex flex-col gap-4 mt-2 lg:hidden text-sm">
+              {metadataFields.map((f) => (
+                <div key={f.label} className="flex flex-col gap-1">
+                  <span className="uppercase tracking-wider font-medium" style={{ color: COLORS.accent }}>
+                    [ {f.label} ]
+                  </span>
+                  <span className="text-black font-light">{f.value}</span>
+                </div>
+              ))}
             </div>
           </div>
         </motion.section>
 
-        {/* Content sections (Problem / Solution / Reflection) */}
-        {contentSections.map((section) => (
+        {/* Content sections — left / right / left alternating */}
+        {contentSections.map((section, idx) => (
           <ArticleSection
             key={section.id}
             id={section.id}
@@ -356,11 +229,12 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
             fallback={section.fallback}
             sectionImage={section.image}
             projectTitle={project.title}
+            isReversed={idx % 2 === 1}
           />
         ))}
       </div>
 
-      <Footer width="60vw" />
+      <Footer />
     </div>
   );
 }

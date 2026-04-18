@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node .claude/skills/impeccable/scripts/cleanup-deprecated.mjs)",
+      "Bash(bun run *)"
+    ]
+  }
+}
