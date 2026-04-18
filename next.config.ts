@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   // Enable modern image formats and optimization
@@ -19,8 +20,16 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['framer-motion', 'three'],
   },
-  
-  // Webpack optimizations
+
+  // Turbopack config (dev). Mirrors the tsconfig @/* path alias explicitly.
+  // Chunk splitting is automatic; no manual splitChunks needed.
+  turbopack: {
+    resolveAlias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+
+  // Webpack optimizations for production builds only (ignored by Turbopack)
   webpack: (config, { dev, isServer }) => {
     // Production optimizations
     if (!dev && !isServer) {
