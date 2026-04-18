@@ -1,87 +1,102 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { COLORS, LINKS } from '@/lib/constants';
 
 // ---------------------------------------------------------------------------
-// SlotMachine — cycles through tasks with a slot machine letter effect
+// SlotMachine — cycles through tasks with a slot machine letter effect.
+//
+// Writes directly to the DOM via a ref during the scramble animation — a
+// React re-render every 40ms would be pure overhead for a single-line text
+// swap. State would trigger reconciliation of every ancestor in the bio
+// section (NameHeading, BioContent, etc.) at ~25Hz.
 // ---------------------------------------------------------------------------
 
 const TASKS = ['AI', 'Research', 'Tennis', 'UI/UX', 'ML', 'WebDev'];
 const RARE_TASK = 'your mom';
 const RARE_CHANCE = 1 / 1000000;
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/';
+const SCRAMBLE_ITERATIONS = 12;
+const SCRAMBLE_STEP_MS = 40;
+const CYCLE_MS = 2000;
 
 function SlotMachine() {
-  const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-  const [displayText, setDisplayText] = useState(TASKS[0]);
-  const [isScrambling, setIsScrambling] = useState(false);
-
-  const scrambleToTask = useCallback((targetTask: string) => {
-    setIsScrambling(true);
-    const maxLength = Math.max(displayText.length, targetTask.length);
-    let iteration = 0;
-    const totalIterations = 12;
-
-    const interval = setInterval(() => {
-      iteration++;
-      
-      // Generate scrambled text
-      const progress = iteration / totalIterations;
-      const lockedChars = Math.floor(progress * targetTask.length);
-      
-      let newText = '';
-      for (let i = 0; i < maxLength; i++) {
-        if (i < lockedChars) {
-          // This character is "locked in"
-          newText += targetTask[i] || '';
-        } else if (i < targetTask.length) {
-          // Still scrambling this position
-          newText += CHARS[Math.floor(Math.random() * CHARS.length)];
-        }
-      }
-      
-      setDisplayText(newText);
-
-      if (iteration >= totalIterations) {
-        clearInterval(interval);
-        setDisplayText(targetTask);
-        setIsScrambling(false);
-      }
-    }, 40);
-
-    return () => clearInterval(interval);
-  }, [displayText.length]);
+  const spanRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    const cycleInterval = setInterval(() => {
-      if (!isScrambling) {
-        // 1 in 1 million chance for the rare task
-        if (Math.random() < RARE_CHANCE) {
-          scrambleToTask(RARE_TASK);
-        } else {
-          const nextIndex = (currentTaskIndex + 1) % TASKS.length;
-          setCurrentTaskIndex(nextIndex);
-          scrambleToTask(TASKS[nextIndex]);
-        }
-      }
-    }, 2000);
+    const span = spanRef.current;
+    if (!span) return;
 
-    return () => clearInterval(cycleInterval);
-  }, [currentTaskIndex, isScrambling, scrambleToTask]);
+    let taskIndex = 0;
+    let current = TASKS[0];
+    span.textContent = current;
+
+    let scrambleTimer: ReturnType<typeof setInterval> | null = null;
+    let cycleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const scrambleTo = (target: string, done: () => void) => {
+      const maxLength = Math.max(current.length, target.length);
+      let iteration = 0;
+
+      scrambleTimer = setInterval(() => {
+        iteration++;
+        const progress = iteration / SCRAMBLE_ITERATIONS;
+        const lockedChars = Math.floor(progress * target.length);
+
+        let newText = '';
+        for (let i = 0; i < maxLength; i++) {
+          if (i < lockedChars) {
+            newText += target[i] || '';
+          } else if (i < target.length) {
+            newText += CHARS[Math.floor(Math.random() * CHARS.length)];
+          }
+        }
+        span.textContent = newText;
+
+        if (iteration >= SCRAMBLE_ITERATIONS) {
+          if (scrambleTimer) {
+            clearInterval(scrambleTimer);
+            scrambleTimer = null;
+          }
+          span.textContent = target;
+          current = target;
+          done();
+        }
+      }, SCRAMBLE_STEP_MS);
+    };
+
+    const scheduleNext = () => {
+      cycleTimer = setTimeout(() => {
+        if (Math.random() < RARE_CHANCE) {
+          scrambleTo(RARE_TASK, scheduleNext);
+        } else {
+          taskIndex = (taskIndex + 1) % TASKS.length;
+          scrambleTo(TASKS[taskIndex], scheduleNext);
+        }
+      }, CYCLE_MS);
+    };
+
+    scheduleNext();
+
+    return () => {
+      if (scrambleTimer) clearInterval(scrambleTimer);
+      if (cycleTimer) clearTimeout(cycleTimer);
+    };
+  }, []);
 
   return (
     <span
+      ref={spanRef}
       className="inline-block font-mono"
-      style={{ 
+      style={{
         color: COLORS.accent,
         minWidth: '7ch',
-        textAlign: 'center'
+        textAlign: 'center',
       }}
     >
-      {displayText}
+      {TASKS[0]}
     </span>
   );
 }

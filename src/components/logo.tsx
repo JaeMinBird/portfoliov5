@@ -61,6 +61,17 @@ export default function Logo() {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !shouldLoadThreeJS) {
+          // Kick off the .glb fetch in parallel with the Three.js chunk
+          // download so the two network requests overlap instead of
+          // serializing.
+          if (typeof document !== 'undefined') {
+            const link = document.createElement('link')
+            link.rel = 'preload'
+            link.as = 'fetch'
+            link.href = '/logo.glb'
+            link.crossOrigin = 'anonymous'
+            document.head.appendChild(link)
+          }
           setShouldLoadThreeJS(true)
           observer.disconnect()
         }

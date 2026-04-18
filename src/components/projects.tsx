@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -45,40 +45,68 @@ const BLUR_PLACEHOLDER =
   'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R+Rj9PmP/Z';
 
 // ---------------------------------------------------------------------------
+// Precomputed filter metadata
+// ---------------------------------------------------------------------------
+
+/**
+ * Counts and filtered lists are static — `projectData` is imported at build
+ * time and never mutates. Compute both once at module load so render-time
+ * filter iteration is O(1) per category.
+ */
+const PROJECT_COUNTS: Record<FilterCategory, number> = {
+  All: projectData.length,
+  Featured: projectData.filter((p) => p.featured).length,
+  'ML/AI': projectData.filter((p) => p.categories.includes('ML/AI')).length,
+  'Full Stack': projectData.filter((p) => p.categories.includes('Full Stack')).length,
+};
+
+const PROJECTS_BY_FILTER: Record<FilterCategory, typeof projectData> = {
+  All: projectData,
+  Featured: projectData.filter((p) => p.featured),
+  'ML/AI': projectData.filter((p) => p.categories.includes('ML/AI')),
+  'Full Stack': projectData.filter((p) => p.categories.includes('Full Stack')),
+};
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-/** Returns the number of projects matching a given filter category. */
-function getProjectCount(category: FilterCategory): number {
-  if (category === 'All') return projectData.length;
-  if (category === 'Featured') return projectData.filter(p => p.featured).length;
-  return projectData.filter(p => p.categories.includes(category)).length;
+/**
+ * Which breakpoint bucket a viewport width falls into. Using a coarse bucket
+ * lets us memoize `groupWordsByLines` cheaply — the result only changes when
+ * the bucket crosses, not on every pixel of a resize drag.
+ */
+type WidthBucket = 'xs' | 'sm' | 'md' | 'lg';
+
+function getWidthBucket(width: number): WidthBucket {
+  if (width >= BREAKPOINTS.lg) return 'lg';
+  if (width >= BREAKPOINTS.md) return 'md';
+  if (width >= BREAKPOINTS.sm) return 'sm';
+  return 'xs';
 }
+
+const MAX_LINE_BY_BUCKET: Record<WidthBucket, number> = {
+  lg: 50,
+  md: 22,
+  sm: 30,
+  xs: 20,
+};
 
 /**
  * Splits a project title into lines that fit within the available card width.
  *
- * Uses character-count heuristics per breakpoint to approximate when the
- * browser would wrap text. This keeps the pill-shaped title tags visually
- * consistent across screen sizes.
+ * Uses character-count heuristics per breakpoint bucket to approximate when
+ * the browser would wrap text. This keeps the pill-shaped title tags
+ * visually consistent across screen sizes.
  */
-function groupWordsByLines(title: string, screenWidth: number): string[][] {
+function groupWordsByLines(title: string, bucket: WidthBucket): string[][] {
+  const maxLineLength = MAX_LINE_BY_BUCKET[bucket];
   const words = title.split(' ');
   const lines: string[][] = [];
   let currentLine: string[] = [];
-
-  let maxLineLength = 20; // mobile default
-  if (screenWidth >= BREAKPOINTS.lg) {
-    maxLineLength = 50;
-  } else if (screenWidth >= BREAKPOINTS.md) {
-    maxLineLength = 22;
-  } else if (screenWidth >= BREAKPOINTS.sm) {
-    maxLineLength = 30;
-  }
-
   let currentLength = 0;
 
-  words.forEach(word => {
+  for (const word of words) {
     const wouldExceed =
       currentLength + word.length + (currentLine.length > 0 ? 1 : 0) > maxLineLength;
 
@@ -90,7 +118,7 @@ function groupWordsByLines(title: string, screenWidth: number): string[][] {
       currentLine.push(word);
       currentLength += word.length + (currentLine.length > 1 ? 1 : 0);
     }
-  });
+  }
 
   if (currentLine.length > 0) lines.push(currentLine);
   return lines;
@@ -138,11 +166,22 @@ export default function Projects() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const { isMobile, width: screenWidth } = useBreakpoint();
 
-  const filteredProjects = projectData.filter(project => {
-    if (activeFilter === 'All') return true;
-    if (activeFilter === 'Featured') return project.featured;
-    return project.categories.includes(activeFilter);
-  });
+  const filteredProjects = PROJECTS_BY_FILTER[activeFilter];
+
+  // Coarse bucket — only changes on breakpoint crossings, so line-splitting
+  // work below can be memoized across pixel-level resizes.
+  const bucket = useMemo(() => getWidthBucket(screenWidth), [screenWidth]);
+
+  // Memoize per-project title lines keyed on (bucket, filter set). Layout
+  // work for the title pills was previously re-running for every project
+  // on every render.
+  const titleLinesByProjectId = useMemo(() => {
+    const map: Record<number, string[][]> = {};
+    for (const project of filteredProjects) {
+      map[project.id] = groupWordsByLines(project.title, bucket);
+    }
+    return map;
+  }, [bucket, filteredProjects]);
 
   /** Triggers the overlay wipe animation before swapping the filter. */
   const handleFilterChange = (newFilter: FilterCategory) => {
@@ -178,16 +217,16 @@ export default function Projects() {
                     <div className="overflow-hidden leading-tight" style={{ height: '1.2em' }}>
                       <motion.div className="flex flex-col leading-tight group-hover:-translate-y-[1.2em] transition-transform duration-200">
                         <span className="whitespace-nowrap block select-none">
-                          {category} ({getProjectCount(category)})
+                          {category} ({PROJECT_COUNTS[category]})
                         </span>
                         <span className="whitespace-nowrap block select-none">
-                          {category} ({getProjectCount(category)})
+                          {category} ({PROJECT_COUNTS[category]})
                         </span>
                       </motion.div>
                     </div>
                   ) : (
                     <span className="whitespace-nowrap select-none">
-                      {category} ({getProjectCount(category)})
+                      {category} ({PROJECT_COUNTS[category]})
                     </span>
                   )}
                 </motion.button>
@@ -271,7 +310,7 @@ export default function Projects() {
                       {/* Title pills */}
                       <div className="h-[3.2em] flex flex-col justify-start self-start w-full">
                         <div className="flex flex-col gap-1">
-                          {groupWordsByLines(project.title, screenWidth).map((line, lineIndex) => (
+                          {titleLinesByProjectId[project.id].map((line, lineIndex) => (
                             <div key={lineIndex} className="flex gap-1">
                               <ProjectTitleTag line={line.join(' ')} isMobile={isMobile} />
                             </div>

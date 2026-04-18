@@ -50,6 +50,10 @@ const TAP_SNAP_SPEED = 0.03;
 const TAP_SENSITIVITY_Y = 0.03;
 const TAP_SENSITIVITY_X = 0.015;
 
+/** Hex-encoded accent color as a number — precomputed to avoid re-parsing
+ *  `COLORS.accent` on every model load. */
+const ACCENT_HEX = parseInt(COLORS.accent.replace('#', ''), 16);
+
 // ---------------------------------------------------------------------------
 // ThreeJSLogo (default export)
 //
@@ -123,23 +127,39 @@ export default function ThreeJSLogo() {
   }, [])
 
   // ── Resize handler ─────────────────────────────────────────────────────
+  // rAF-throttled so resize drags don't thrash `setSize`/`setPixelRatio`.
 
+  const resizeTicking = useRef(false)
   const handleResize = useCallback(() => {
-    if (!cameraRef.current || !rendererRef.current || !mountRef.current) return
+    if (resizeTicking.current) return
+    resizeTicking.current = true
+    requestAnimationFrame(() => {
+      resizeTicking.current = false
+      if (!cameraRef.current || !rendererRef.current || !mountRef.current) return
 
-    isMobileRef.current = window.innerWidth <= BREAKPOINTS.md
+      isMobileRef.current = window.innerWidth <= BREAKPOINTS.md
 
-    const { clientWidth: w, clientHeight: h } = mountRef.current
-    cameraRef.current.aspect = w / h
-    cameraRef.current.updateProjectionMatrix()
-    rendererRef.current.setSize(w, h)
+      const { clientWidth: w, clientHeight: h } = mountRef.current
+      cameraRef.current.aspect = w / h
+      cameraRef.current.updateProjectionMatrix()
+      rendererRef.current.setSize(w, h)
+    })
   }, [])
 
-  // ── Visibility observer (pauses rendering when off-screen) ─────────────
+  // ── Visibility observer (pauses the entire RAF loop when off-screen) ───
+  // The loop restart is wired from the main effect below via `resumeLoop`.
+
+  const resumeLoopRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
-      ([entry]) => { isVisibleRef.current = entry.isIntersecting },
+      ([entry]) => {
+        const wasVisible = isVisibleRef.current
+        isVisibleRef.current = entry.isIntersecting
+        if (!wasVisible && entry.isIntersecting) {
+          resumeLoopRef.current?.()
+        }
+      },
       { threshold: 0.1 },
     )
 
@@ -224,7 +244,7 @@ export default function ThreeJSLogo() {
         const model = gltf.scene
 
         const material = new MeshBasicMaterial({
-          color: parseInt(COLORS.accent.replace('#', ''), 16),
+          color: ACCENT_HEX,
           wireframe: true,
         })
 
@@ -262,10 +282,15 @@ export default function ThreeJSLogo() {
     const frameInterval = 1000 / (mobile ? 30 : 60)
 
     const animate = (currentTime: number) => {
+      // Fully stop when off-screen — no rAF reschedule. The
+      // IntersectionObserver will call `resumeLoop` when we return.
+      if (!isVisibleRef.current) {
+        frameId.current = null
+        return
+      }
+
       frameId.current = requestAnimationFrame(animate)
 
-      // Skip rendering when off-screen or under frame-budget.
-      if (!isVisibleRef.current) return
       if (currentTime - lastTime < frameInterval) return
       lastTime = currentTime
 
@@ -322,12 +347,22 @@ export default function ThreeJSLogo() {
       document.documentElement.addEventListener('mouseleave', handleMouseLeave, { passive: true })
     }
     window.addEventListener('resize', handleResize, { passive: true })
+
+    // --- Loop resume hook (consumed by IntersectionObserver) ---
+    const resumeLoop = () => {
+      if (frameId.current == null) {
+        frameId.current = requestAnimationFrame(animate)
+      }
+    }
+    resumeLoopRef.current = resumeLoop
+
     animate(0)
 
     // --- Cleanup ---
     // Use the `mobile` closure captured at mount time — not `isMobileRef.current`,
     // which may have flipped if the viewport crossed the breakpoint since setup.
     return () => {
+      resumeLoopRef.current = null
       if (frameId.current) cancelAnimationFrame(frameId.current)
 
       if (mobile) {

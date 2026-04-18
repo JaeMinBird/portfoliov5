@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { jobData, JobInfo } from '../data/experience';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
@@ -223,11 +223,14 @@ export default function Experience() {
   const [hoveredJob, setHoveredJob] = useState<JobInfo | null>(null);
   const [previousJobIndex, setPreviousJobIndex] = useState<number | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const { isLg, isXs, isLgOnly, isMobile: isMobileBreakpoint } = useBreakpoint();
+  const { isLg, isXs, isLgOnly } = useBreakpoint();
 
   const isMobile = !isLg;
-  const infoVariants = makeInfoVariants(isMobile);
-  const mobileBackgroundVariants = makeMobileBackgroundVariants(isXs);
+  const infoVariants = useMemo(() => makeInfoVariants(isMobile), [isMobile]);
+  const mobileBackgroundVariants = useMemo(
+    () => makeMobileBackgroundVariants(isXs),
+    [isXs],
+  );
 
   // Clean up hover timeout on unmount.
   useEffect(() => {

@@ -1,6 +1,3 @@
-'use client'
-
-import { motion, useScroll, useTransform } from "framer-motion";
 import StickyHeader from "@/components/nav";
 import Logo from "@/components/logo";
 import Bumper from "@/components/bumper";
@@ -8,17 +5,9 @@ import Projects from "@/components/projects";
 import Footer from "@/components/footer";
 import Bio from "@/components/bio";
 import Experience from "@/components/experience";
-import { useScrollToSection } from "@/hooks/use-scroll-to-section";
-import { COLORS } from "@/lib/constants";
+import ScrollIndicator from "@/components/scroll-indicator";
 
 export default function Home() {
-  const { scrollY } = useScroll();
-  const scrollToSection = useScrollToSection(50);
-
-  // Lightweight parallax — fades & lifts the scroll indicator as user scrolls.
-  const parallaxY = useTransform(scrollY, [0, 200], [0, -60]);
-  const opacity = useTransform(scrollY, [0, 100], [1, 0]);
-
   return (
     <div className="min-h-screen bg-white">
       <StickyHeader />
@@ -26,24 +15,7 @@ export default function Home() {
       {/* Hero — full-viewport logo section */}
       <section className="min-h-screen flex flex-col items-center justify-center relative">
         <Logo />
-
-        {/* Scroll CTA — parallaxes away on scroll */}
-        <motion.div
-          className="fixed bottom-8 w-full flex justify-center cursor-pointer"
-          style={{ y: parallaxY, opacity }}
-          onClick={() => scrollToSection('about')}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <div className="text-center">
-            <p className="text-xs uppercase tracking-widest text-gray-600 mb-1">
-              SCROLL TO
-            </p>
-            <p className="text-sm font-medium" style={{ color: COLORS.accent }}>
-              EXPLORE
-            </p>
-          </div>
-        </motion.div>
+        <ScrollIndicator />
       </section>
 
       <Bumper number="01" sectionHeader="ABOUT" id="about" />

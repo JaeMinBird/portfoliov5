@@ -1,8 +1,8 @@
 "use client"
-import { useEffect, useState, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { motion, AnimatePresence, Transition } from "framer-motion";
 import Image from "next/image";
-import { IconBrandLinkedinFilled, IconBrandGithubFilled } from '@tabler/icons-react';
+import { IconLinkedIn, IconGitHub } from "@/components/icons";
 import { useBreakpoint } from "@/hooks/use-breakpoint";
 import { useScrollToSection } from "@/hooks/use-scroll-to-section";
 import { COLORS, LINKS, SPRING_INTERACTIVE } from "@/lib/constants";
@@ -87,24 +87,31 @@ function MenuButton({
 // ---------------------------------------------------------------------------
 
 interface NavLinkProps {
-  href: string;
+  id: string;
   label: string;
   scrolled: boolean;
-  onClick: (e: React.MouseEvent) => void;
+  onClick: (id: string, e: React.MouseEvent) => void;
 }
 
-function NavLink({ href, label, scrolled, onClick }: NavLinkProps) {
+function NavLink({ id, label, scrolled, onClick }: NavLinkProps) {
   const textColor = scrolled ? 'text-white' : 'text-[#3B3B3B]';
   const spanColor = scrolled ? 'text-white' : `text-[${COLORS.accent}]`;
   const spanStyle = scrolled ? undefined : { color: COLORS.accent };
 
+  // `id` is stable across renders per item, so this closure doesn't thrash
+  // framer-motion's memoization the way a freshly curried handler would.
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => onClick(id, e),
+    [id, onClick],
+  );
+
   return (
     <div className="overflow-hidden leading-none" style={{ height: '1.25rem' }}>
       <motion.a
-        href={href}
+        href={`#${id}`}
         className={`text-xl font-medium flex flex-col leading-none ${textColor}`}
         style={{ fontFamily: 'var(--font-fredoka)' }}
-        onClick={onClick}
+        onClick={handleClick}
         whileHover={{ y: '-1.25rem' }}
         transition={{ duration: 0.2 }}
       >
@@ -127,7 +134,13 @@ interface MobileNavLinkProps {
   external?: boolean;
 }
 
-function MobileNavLink({ href, label, delay, onClick, external }: MobileNavLinkProps) {
+const MobileNavLink = React.memo(function MobileNavLink({
+  href,
+  label,
+  delay,
+  onClick,
+  external,
+}: MobileNavLinkProps) {
   return (
     <motion.a
       href={href}
@@ -142,7 +155,7 @@ function MobileNavLink({ href, label, delay, onClick, external }: MobileNavLinkP
       {label}
     </motion.a>
   );
-}
+});
 
 // ---------------------------------------------------------------------------
 // StickyHeader (default export)
@@ -155,10 +168,19 @@ export default function StickyHeader() {
   const scrollToSection = useScrollToSection(100);
   const previousIsMobileRef = useRef(false);
 
-  // Track scroll position to toggle header background.
+  // Track scroll position to toggle header background. rAF-throttled so we
+  // only coalesce one update per paint frame.
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
+    let ticking = false;
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 50);
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -177,17 +199,26 @@ export default function StickyHeader() {
   }, [mobileNavOpen]);
 
   /** Navigate to a section, closing the mobile menu in the process. */
-  const handleNavClick = (id: string) => (e: React.MouseEvent) => {
-    setMobileNavOpen(false);
-    scrollToSection(id, e);
-  };
+  const handleNavClick = useCallback(
+    (id: string, e: React.MouseEvent) => {
+      setMobileNavOpen(false);
+      scrollToSection(id, e);
+    },
+    [scrollToSection],
+  );
+
+  /** Close the mobile menu — stable reference for the Resume link. */
+  const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
 
   // Navigation items — single source of truth for both desktop & mobile.
-  const navItems = [
-    { id: 'about', label: 'ABOUT' },
-    { id: 'projects', label: 'PROJECTS' },
-    { id: 'footer', label: 'CONNECT' },
-  ] as const;
+  const navItems = useMemo(
+    () => [
+      { id: 'about', label: 'ABOUT' },
+      { id: 'projects', label: 'PROJECTS' },
+      { id: 'footer', label: 'CONNECT' },
+    ] as const,
+    [],
+  );
 
   return (
     <header
@@ -233,10 +264,10 @@ export default function StickyHeader() {
           {navItems.map((item) => (
             <NavLink
               key={item.id}
-              href={`#${item.id}`}
+              id={item.id}
               label={item.label}
               scrolled={scrolled}
-              onClick={handleNavClick(item.id)}
+              onClick={handleNavClick}
             />
           ))}
         </nav>
@@ -267,9 +298,25 @@ export default function StickyHeader() {
             transition={{ duration: 0.3 }}
           >
             <nav className="flex flex-col items-center space-y-12">
-              <MobileNavLink href="#about" label="ABOUT" delay={0.1} onClick={handleNavClick('about')} />
-              <MobileNavLink href="#projects" label="PROJECTS" delay={0.2} onClick={handleNavClick('projects')} />
-              <MobileNavLink href={LINKS.resume} label="RESUME" delay={0.3} onClick={() => setMobileNavOpen(false)} external />
+              <MobileNavLink
+                href="#about"
+                label="ABOUT"
+                delay={0.1}
+                onClick={(e) => handleNavClick('about', e)}
+              />
+              <MobileNavLink
+                href="#projects"
+                label="PROJECTS"
+                delay={0.2}
+                onClick={(e) => handleNavClick('projects', e)}
+              />
+              <MobileNavLink
+                href={LINKS.resume}
+                label="RESUME"
+                delay={0.3}
+                onClick={closeMobileNav}
+                external
+              />
             </nav>
 
             {/* Overlay footer */}
@@ -281,10 +328,10 @@ export default function StickyHeader() {
             >
               <div className="flex space-x-6 mb-4">
                 <a href={LINKS.linkedin} className="hover:text-[#F8C46F] transition-colors">
-                  <IconBrandLinkedinFilled size={24} />
+                  <IconLinkedIn size={24} />
                 </a>
                 <a href={LINKS.github} className="hover:text-[#F8C46F] transition-colors">
-                  <IconBrandGithubFilled size={24} />
+                  <IconGitHub size={24} />
                 </a>
               </div>
               <div className="mb-4">

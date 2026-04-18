@@ -18,7 +18,7 @@ const atkinsonHyperlegible = Atkinson_Hyperlegible({
 const fredoka = Fredoka({
   variable: "--font-fredoka",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "700"],
 });
 
 export const metadata: Metadata = {
@@ -104,6 +104,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Logo appears in nav, hero fallback, and footer — preload so it's
+            in cache before the first paint that needs it. */}
+        <link
+          rel="preload"
+          as="image"
+          href="/logo.svg"
+          type="image/svg+xml"
+        />
+      </head>
       <body
         className={`${geistMono.variable} ${atkinsonHyperlegible.variable} ${fredoka.variable} antialiased`}
       >
