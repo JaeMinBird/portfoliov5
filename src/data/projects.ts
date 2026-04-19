@@ -1,5 +1,6 @@
 export interface ProjectInfo {
-  id: number;
+  id: number;   // ordering only — 1 = oldest
+  slug: string; // used for the URL: /projects/<slug>
   title: string;
   description: string;
   image: string; // placeholder for now
@@ -11,6 +12,9 @@ export interface ProjectInfo {
   platform?: string;
   stack?: string[];
   repo?: string;
+  devpost?: string;
+  website?: string;
+  hackathon?: { place: string; event: string };
   problem?: string;
   solution?: string;
   reflection?: string;
@@ -24,7 +28,8 @@ export interface ProjectInfo {
 
 export const projectData: ProjectInfo[] = [
   {
-    id: 1,
+    id: 3,
+    slug: "review-sentiment-analysis",
     title: "Review Sentiment Analysis Model",
     description: "Comprehensive sentiment analysis system that scrapes professor reviews, trains dual ML models, and provides an interactive dashboard for analyzing student sentiment across departments.",
     image: "/project-images/rsam.png",
@@ -41,6 +46,7 @@ export const projectData: ProjectInfo[] = [
   },
   {
     id: 2,
+    slug: "timely",
     title: "Timely - AI Calendar Assistant",
     description: "AI-powered calendar assistant built in 24 hours during HackPSU, featuring natural language processing for schedule management and seamless Google Calendar integration.",
     image: "/project-images/timely.png",
@@ -51,12 +57,16 @@ export const projectData: ProjectInfo[] = [
     heroImage: "/project-images/timely.png",
     platform: "Web Application",
     stack: ["React", "Next.js", "TypeScript", "MongoDB", "Google Cloud Platform", "OpenAI API", "Google Gemini API", "Tailwind CSS"],
+    hackathon: { place: "1st Place", event: "HackPSU Spring 2025" },
+    devpost: "https://devpost.com/software/timely",
+    website: "https://timely.jaebirdsall.com",
     problem: "Traditional calendar applications require users to navigate complex interfaces and fill out multiple form fields for simple scheduling tasks. Users wanted a more intuitive way to manage their schedules through natural conversation, similar to how they would ask a human assistant. Existing solutions lacked the seamless integration between AI conversation and actual calendar functionality.",
     solution: "Built a comprehensive AI calendar assistant that interprets natural language requests and automatically creates calendar events through Google Calendar API integration. Implemented hot-swappable AI models (GPT-4 and Gemini) with real-time chat functionality, user authentication via NextAuth, and cross-device data persistence using MongoDB. The system features intelligent time parsing, context-aware event creation, and a fully responsive interface with smooth animations.",
     reflection: "Developing this project in just 24 hours taught me the importance of rapid prototyping and MVP-focused development. Working with multiple AI models simultaneously highlighted the benefits of abstraction and modular architecture. The tight deadline forced creative problem-solving around API integration and state management. I gained valuable experience in OAuth2.0 flows and learned how to effectively combine multiple complex services (AI, Calendar, Database) into a cohesive user experience. Future iterations would include smart scheduling suggestions and conflict detection."
   },
   {
-    id: 3,
+    id: 1,
+    slug: "263-studios",
     title: "Ecommerce Platform from Scratch",
     description: "Minimalist fashion e-commerce platform built from the ground up, featuring sophisticated responsive design, custom animations, and a complete full-stack architecture with AWS-hosted infrastructure.",
     image: "/project-images/ecommerce.png",

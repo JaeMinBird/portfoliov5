@@ -40,7 +40,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Dynamic project pages
   const projectRoutes = projectData.map((project) => ({
-    url: `${baseUrl}/projects/${project.id}`,
+    url: `${baseUrl}/projects/${project.slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.7,

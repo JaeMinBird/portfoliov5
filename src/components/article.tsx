@@ -143,9 +143,9 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
           )}
         </motion.div>
 
-        {/* GitHub link */}
+        {/* Links */}
         <motion.div
-          className="max-w-3xl mx-auto flex justify-center mb-12 md:mb-16"
+          className="max-w-3xl mx-auto flex justify-center gap-8 mb-12 md:mb-16"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -161,6 +161,36 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
             </svg>
             <span>GitHub</span>
           </a>
+
+          {project.devpost && (
+            <a
+              href={project.devpost}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm uppercase tracking-wider font-medium text-black hover:opacity-70 transition-opacity"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M6.002 1.61L0 12.004 6.002 22.39h11.996L24 12.004 17.998 1.61zm1.593 16.526l-3.742-6.132 3.742-6.135h8.82l3.741 6.135-3.741 6.132z"/>
+              </svg>
+              <span>Devpost</span>
+            </a>
+          )}
+
+          {project.website && (
+            <a
+              href={project.website}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm uppercase tracking-wider font-medium text-black hover:opacity-70 transition-opacity"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="2" y1="12" x2="22" y2="12" />
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+              </svg>
+              <span>Website</span>
+            </a>
+          )}
         </motion.div>
 
         {/* Overview section */}
@@ -171,10 +201,25 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="flex flex-col lg:grid lg:grid-cols-[4fr_1fr] lg:gap-x-12">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-light mb-8 lg:mb-12 text-black leading-tight text-left lg:col-start-1 lg:row-start-1">
-              {project.title}
-            </h1>
+          <div className="flex flex-col lg:grid lg:grid-cols-[4fr_1fr] lg:gap-x-12 lg:items-start">
+            <div className="mb-8 lg:mb-12 lg:col-start-1 lg:row-start-1">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-light text-black leading-tight text-left">
+                {project.title}
+              </h1>
+              {project.hackathon && (
+                <div className="mt-3 inline-flex items-center gap-2">
+                  <span
+                    className="text-xs font-bold px-2 py-0.5 rounded select-none"
+                    style={{ backgroundColor: COLORS.accent, color: '#fff' }}
+                  >
+                    {project.hackathon.place}
+                  </span>
+                  <span className="text-xs uppercase tracking-widest font-medium text-gray-400">
+                    {project.hackathon.event}
+                  </span>
+                </div>
+              )}
+            </div>
 
             <div className="hidden lg:block lg:col-start-2 lg:row-start-1 text-base">
               <div className="mb-2">
@@ -183,6 +228,15 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
                 </span>
               </div>
               <div className="text-black font-light">{metadataFields[0].value}</div>
+            </div>
+
+            <div className="hidden lg:block lg:col-start-2 lg:row-start-2 text-base">
+              <div className="mb-2">
+                <span className="uppercase tracking-wider font-medium" style={{ color: COLORS.accent }}>
+                  [ {metadataFields[1].label} ]
+                </span>
+              </div>
+              <div className="text-black font-light">{metadataFields[1].value}</div>
             </div>
 
             <div
@@ -195,15 +249,6 @@ export default function ProjectArticle({ project }: ProjectArticleProps) {
               <p className="text-xl md:text-2xl leading-relaxed text-black text-left">
                 {project.description}
               </p>
-            </div>
-
-            <div className="hidden lg:block lg:col-start-2 lg:row-start-2 text-base">
-              <div className="mb-2">
-                <span className="uppercase tracking-wider font-medium" style={{ color: COLORS.accent }}>
-                  [ {metadataFields[1].label} ]
-                </span>
-              </div>
-              <div className="text-black font-light">{metadataFields[1].value}</div>
             </div>
 
             <div className="flex flex-col gap-4 mt-2 lg:hidden text-sm">

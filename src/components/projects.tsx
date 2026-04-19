@@ -60,11 +60,13 @@ const PROJECT_COUNTS: Record<FilterCategory, number> = {
   'Full Stack': projectData.filter((p) => p.categories.includes('Full Stack')).length,
 };
 
+const byNewest = (arr: typeof projectData) => [...arr].sort((a, b) => b.id - a.id);
+
 const PROJECTS_BY_FILTER: Record<FilterCategory, typeof projectData> = {
-  All: projectData,
-  Featured: projectData.filter((p) => p.featured),
-  'ML/AI': projectData.filter((p) => p.categories.includes('ML/AI')),
-  'Full Stack': projectData.filter((p) => p.categories.includes('Full Stack')),
+  All: byNewest(projectData),
+  Featured: byNewest(projectData.filter((p) => p.featured)),
+  'ML/AI': byNewest(projectData.filter((p) => p.categories.includes('ML/AI'))),
+  'Full Stack': byNewest(projectData.filter((p) => p.categories.includes('Full Stack'))),
 };
 
 // ---------------------------------------------------------------------------
@@ -125,33 +127,26 @@ function groupWordsByLines(title: string, bucket: WidthBucket): string[][] {
 }
 
 // ---------------------------------------------------------------------------
-// ProjectTitleTag — the pill-shaped label below each project card.
+// ProjectTitleTag — plain text label below each project card.
 // ---------------------------------------------------------------------------
 
-function ProjectTitleTag({ line, isMobile }: { line: string; isMobile: boolean }) {
-  if (isMobile) {
-    return (
-      <div className="overflow-hidden rounded-sm">
-        <motion.div
-          className="bg-black text-white px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium select-none"
-        >
-          {line}
-        </motion.div>
-      </div>
-    );
-  }
-
+function ProjectTitleTag({ line }: { line: string }) {
   return (
-    <div className="overflow-hidden rounded-sm">
-      <motion.div className="bg-black text-white px-2 md:px-3 py-1 md:py-2 text-xs md:text-sm font-medium select-none">
-        <div className="overflow-hidden leading-tight" style={{ height: '1.2em' }}>
-          <motion.div className="flex flex-col leading-tight group-hover:-translate-y-[1.2em] transition-transform duration-200">
-            <span className="block select-none">{line}</span>
-            <span className="block select-none">{line}</span>
-          </motion.div>
-        </div>
-      </motion.div>
-    </div>
+    <span className="text-black text-xs md:text-sm font-medium select-none leading-snug">
+      {line}
+    </span>
+  );
+}
+
+function HackathonStar() {
+  return (
+    <span
+      className="text-xs md:text-sm font-bold select-none leading-snug ml-0.5"
+      style={{ color: COLORS.accent }}
+      aria-label="hackathon winner"
+    >
+      *
+    </span>
   );
 }
 
@@ -272,7 +267,7 @@ export default function Projects() {
               transition={{ layout: { duration: 0.4, ease: 'easeInOut' } }}
             >
               {filteredProjects.map(project => (
-                <Link key={project.id} href={`/projects/${project.id}`}>
+                <Link key={project.id} href={`/projects/${project.slug}`}>
                   <motion.div
                     className="group cursor-pointer flex flex-col w-full"
                     variants={projectVariants}
@@ -305,14 +300,18 @@ export default function Projects() {
                         </div>
                       </motion.div>
 
-                      {/* Title pills */}
+                      {/* Title */}
                       <div className="h-[3.2em] flex flex-col justify-start self-start w-full">
                         <div className="flex flex-col gap-1">
-                          {titleLinesByProjectId[project.id].map((line, lineIndex) => (
-                            <div key={lineIndex} className="flex gap-1">
-                              <ProjectTitleTag line={line.join(' ')} isMobile={isMobile} />
-                            </div>
-                          ))}
+                          {titleLinesByProjectId[project.id].map((line, lineIndex) => {
+                            const isLastLine = lineIndex === titleLinesByProjectId[project.id].length - 1;
+                            return (
+                              <div key={lineIndex} className="flex items-baseline gap-0">
+                                <ProjectTitleTag line={line.join(' ')} />
+                                {isLastLine && project.hackathon && <HackathonStar />}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
@@ -322,6 +321,14 @@ export default function Projects() {
             </motion.div>
           </AnimatePresence>
         </motion.div>
+
+        {/* Hackathon legend */}
+        <div className="mt-6 flex justify-center">
+          <span className="text-xs text-gray-400 select-none">
+            <span style={{ color: COLORS.accent }} className="font-bold">*</span>
+            {' '}hackathon winner
+          </span>
+        </div>
 
         {/* Empty state */}
         <AnimatePresence>

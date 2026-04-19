@@ -4,14 +4,13 @@ import ProjectArticle from '@/components/article';
 
 interface ProjectPageProps {
   params: Promise<{
-    id: string;
+    slug: string;
   }>;
 }
 
 export default async function ProjectPage({ params }: ProjectPageProps) {
-  const { id } = await params;
-  const projectId = parseInt(id);
-  const project = projectData.find(p => p.id === projectId);
+  const { slug } = await params;
+  const project = projectData.find(p => p.slug === slug);
 
   if (!project) {
     notFound();
@@ -20,9 +19,8 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
   return <ProjectArticle project={project} />;
 }
 
-// Generate static params for all projects
 export function generateStaticParams() {
   return projectData.map((project) => ({
-    id: project.id.toString(),
+    slug: project.slug,
   }));
-} 
+}
